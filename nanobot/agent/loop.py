@@ -29,6 +29,7 @@ from nanobot.session.manager import Session, SessionManager
 if TYPE_CHECKING:
     from nanobot.config.schema import ExecToolConfig
     from nanobot.cron.service import CronService
+    from nanobot.knowledge.service import KnowledgeIntakeService
 
 
 class AgentLoop:
@@ -59,8 +60,11 @@ class AgentLoop:
         restrict_to_workspace: bool = False,
         session_manager: SessionManager | None = None,
         mcp_servers: dict | None = None,
+        knowledge_service: KnowledgeIntakeService | None = None,
     ):
         from nanobot.config.schema import ExecToolConfig
+        from nanobot.knowledge.router import KnowledgeRouter
+        from nanobot.knowledge.service import KnowledgeIntakeService
         self.bus = bus
         self.provider = provider
         self.workspace = workspace
@@ -75,6 +79,10 @@ class AgentLoop:
         self.restrict_to_workspace = restrict_to_workspace
 
         self.context = ContextBuilder(workspace)
+        self.knowledge_service = knowledge_service or KnowledgeIntakeService(
+            workspace,
+            router=KnowledgeRouter(provider=provider, model=self.model),
+        )
         self.sessions = session_manager or SessionManager(workspace)
         self.tools = ToolRegistry()
         self.subagents = SubagentManager(
@@ -301,6 +309,8 @@ class AgentLoop:
 
         key = session_key or msg.session_key
         session = self.sessions.get_or_create(key)
+        capture_text = msg.content
+        capture_mode = bool(msg.metadata.get("capture_mode"))
 
         # Slash commands
         cmd = msg.content.strip().lower()
@@ -321,6 +331,47 @@ class AgentLoop:
         if cmd == "/help":
             return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id,
                                   content="🐈 nanobot commands:\n/new — Start a new conversation\n/help — Show available commands")
+        if msg.content.strip().lower().startswith("/capture"):
+            capture_mode = True
+            capture_text = msg.content.strip()[len("/capture"):].strip()
+
+        if capture_mode:
+            user_hint = msg.metadata.get("user_hint", "")
+            results = []
+            if msg.media:
+                for media_path in msg.media:
+                    results.append(
+                        await self.knowledge_service.capture_file(
+                            Path(media_path),
+                            user_hint=user_hint,
+                            source=msg.channel,
+                        )
+                    )
+            if not results or msg.content.strip():
+                results.append(
+                    await self.knowledge_service.capture_text(
+                        capture_text,
+                        user_hint=user_hint,
+                        source=msg.channel,
+                    )
+                )
+
+            follow_up = next((result.follow_up for result in results if result.follow_up is not None), None)
+            all_entities = sorted({entity for result in results for entity in result.entities})
+            all_actions = [action for result in results for action in result.actions]
+
+            if follow_up is not None:
+                content = follow_up.question
+            else:
+                entities = ", ".join(all_entities) if all_entities else "unclassified"
+                actions = ", ".join(all_actions) if all_actions else "saved"
+                content = f"Captured to {entities}. Actions: {actions}."
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=content,
+                metadata=msg.metadata or {},
+            )
 
         if len(session.messages) > self.memory_window and session.key not in self._consolidating:
             self._consolidating.add(session.key)

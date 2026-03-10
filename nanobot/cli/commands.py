@@ -26,6 +26,8 @@ app = typer.Typer(
     help=f"{__logo__} nanobot - Personal AI Assistant",
     no_args_is_help=True,
 )
+capture_app = typer.Typer(help="Capture raw material into hybrid memory")
+app.add_typer(capture_app, name="capture")
 
 console = Console()
 EXIT_COMMANDS = {"exit", "quit", "/exit", "/quit", ":q"}
@@ -200,6 +202,8 @@ def onboard():
 
 def _create_workspace_templates(workspace: Path):
     """Create default workspace template files."""
+    from nanobot.knowledge.store import KnowledgeStore
+
     templates = {
         "AGENTS.md": """# Agent Instructions
 
@@ -210,7 +214,22 @@ You are a helpful AI assistant. Be concise, accurate, and friendly.
 - Always explain what you're doing before taking actions
 - Ask for clarification when the request is ambiguous
 - Use tools to help accomplish tasks
-- Remember important information in memory/MEMORY.md; past events are logged in memory/HISTORY.md
+- Remember important information in the canonical memory files
+
+## Memory
+
+- `memory/MEMORY.md` — compact long-term summary loaded into context
+- `memory/HISTORY.md` — append-only event log, search with grep to recall past events
+- `entities/` — canonical files for real-world things like bike, house, person
+- `ledgers/` — structured records such as expenses and maintenance logs
+- `inbox/` — raw captured items before they are routed
+
+When handling raw material from capture flows:
+- preserve the original artifact first
+- route durable facts into entity files
+- route events into history
+- route transactions into ledgers
+- ask follow-up questions only when ambiguity changes storage or financial treatment
 """,
         "SOUL.md": """# Soul
 
@@ -278,6 +297,9 @@ This file stores important information that should persist across sessions.
     skills_dir = workspace / "skills"
     skills_dir.mkdir(exist_ok=True)
 
+    KnowledgeStore(workspace).bootstrap()
+
+
 
 def _make_provider(config: Config):
     """Create the appropriate LLM provider from config."""
@@ -317,9 +339,88 @@ def _make_provider(config: Config):
     )
 
 
+def _make_knowledge_service(config: Config):
+    """Create the knowledge intake service from config."""
+    from nanobot.knowledge.router import KnowledgeRouter
+    from nanobot.knowledge.service import KnowledgeIntakeService
+
+    provider = _make_provider(config)
+    return KnowledgeIntakeService(
+        config.workspace_path,
+        router=KnowledgeRouter(provider=provider, model=config.agents.defaults.model),
+        config=config.knowledge,
+    )
+
+
+def _render_capture_result(result) -> None:
+    """Print a concise capture summary to the terminal."""
+    if result.follow_up is not None:
+        console.print(result.follow_up.question)
+        return
+    entities = ", ".join(result.entities) if result.entities else "unclassified"
+    actions = ", ".join(result.actions) if result.actions else "saved"
+    console.print(f"Captured to {entities}. Actions: {actions}.")
+
+
 # ============================================================================
 # Gateway / Server
 # ============================================================================
+
+
+@capture_app.command("text")
+def capture_text_command(
+    text: str = typer.Argument("", help="Text to capture"),
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+    stdin: bool = typer.Option(False, "--stdin", help="Read capture text from stdin"),
+):
+    """Capture a text note into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    config = load_config()
+    service = _make_knowledge_service(config)
+    content = sys.stdin.read().strip() if stdin else text.strip()
+    if not content:
+        console.print("[red]Error: No text to capture.[/red]")
+        raise typer.Exit(1)
+    result = asyncio.run(service.capture_text(content, user_hint=hint, source="cli"))
+    _render_capture_result(result)
+
+
+@capture_app.command("file")
+def capture_file_command(
+    path: Path = typer.Argument(..., exists=True, dir_okay=False, readable=True, resolve_path=True),
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+    note: str = typer.Option("", "--note", help="Optional text context to send with the file"),
+):
+    """Capture a file into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    config = load_config()
+    service = _make_knowledge_service(config)
+    result = asyncio.run(
+        service.capture_file(path, user_hint=hint, source="cli", content_text=note.strip())
+    )
+    _render_capture_result(result)
+
+
+@capture_app.command("clipboard")
+def capture_clipboard_command(
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+):
+    """Capture the current macOS clipboard text into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    if sys.platform != "darwin":
+        console.print("[red]Error: Clipboard capture is currently implemented for macOS only.[/red]")
+        raise typer.Exit(1)
+    clipboard = os.popen("pbpaste").read().strip()
+    if not clipboard:
+        console.print("[red]Error: Clipboard is empty.[/red]")
+        raise typer.Exit(1)
+    config = load_config()
+    service = _make_knowledge_service(config)
+    result = asyncio.run(service.capture_text(clipboard, user_hint=hint, source="cli"))
+    _render_capture_result(result)
 
 
 @app.command()
@@ -336,6 +437,8 @@ def gateway(
     from nanobot.cron.service import CronService
     from nanobot.cron.types import CronJob
     from nanobot.heartbeat.service import HeartbeatService
+    from nanobot.knowledge.watcher import WatchedInboxService
+    from nanobot.knowledge.web_inbox import LocalWebInboxServer
     
     if verbose:
         import logging
@@ -403,7 +506,21 @@ def gateway(
     
     # Create channel manager
     channels = ChannelManager(config, bus)
-    
+    local_web_inbox = None
+    watched_inbox = None
+    if config.knowledge.enabled and config.knowledge.local_web.enabled:
+        local_web_inbox = LocalWebInboxServer(
+            bind=config.knowledge.local_web.bind,
+            port=config.knowledge.local_web.port,
+            intake_service=agent.knowledge_service,
+            auth_token=config.knowledge.local_web.auth_token,
+        )
+    if config.knowledge.enabled and config.knowledge.watched_paths:
+        watched_inbox = WatchedInboxService(
+            watched_paths=config.knowledge.watched_paths,
+            intake_service=agent.knowledge_service,
+        )
+
     if channels.enabled_channels:
         console.print(f"[green]✓[/green] Channels enabled: {', '.join(channels.enabled_channels)}")
     else:
@@ -414,11 +531,23 @@ def gateway(
         console.print(f"[green]✓[/green] Cron: {cron_status['jobs']} scheduled jobs")
     
     console.print(f"[green]✓[/green] Heartbeat: every 30m")
+    if local_web_inbox is not None:
+        console.print(
+            f"[green]✓[/green] Local web inbox: http://{config.knowledge.local_web.bind}:{config.knowledge.local_web.port}/capture"
+        )
+    if watched_inbox is not None:
+        console.print(
+            f"[green]✓[/green] Watched folders: {', '.join(config.knowledge.watched_paths)}"
+        )
     
     async def run():
         try:
             await cron.start()
             await heartbeat.start()
+            if local_web_inbox is not None:
+                local_web_inbox.start()
+            if watched_inbox is not None:
+                watched_inbox.start()
             await asyncio.gather(
                 agent.run(),
                 channels.start_all(),
@@ -430,6 +559,10 @@ def gateway(
             heartbeat.stop()
             cron.stop()
             agent.stop()
+            if local_web_inbox is not None:
+                local_web_inbox.stop()
+            if watched_inbox is not None:
+                watched_inbox.stop()
             await channels.stop_all()
     
     asyncio.run(run())

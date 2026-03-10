@@ -252,6 +252,28 @@ class ExecToolConfig(Base):
     timeout: int = 60
 
 
+class LocalWebInboxConfig(Base):
+    """Local web inbox configuration for knowledge capture."""
+
+    enabled: bool = True
+    bind: str = "127.0.0.1"
+    port: int = 18791
+    auth_token: str = ""
+
+
+class KnowledgeConfig(Base):
+    """Hybrid knowledge-ingestion configuration."""
+
+    enabled: bool = True
+    inbox_dir: str = "inbox"
+    entities_dir: str = "entities"
+    ledgers_dir: str = "ledgers"
+    indexes_dir: str = "indexes"
+    review_dir: str = "inbox/review"
+    watched_paths: list[str] = Field(default_factory=list)
+    local_web: LocalWebInboxConfig = Field(default_factory=LocalWebInboxConfig)
+
+
 class MCPServerConfig(Base):
     """MCP server connection configuration (stdio or HTTP)."""
 
@@ -279,6 +301,7 @@ class Config(BaseSettings):
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    knowledge: KnowledgeConfig = Field(default_factory=KnowledgeConfig)
 
     @property
     def workspace_path(self) -> Path:
