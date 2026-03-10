@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import Field
 
 from nanobot.config.schema import Base
@@ -10,8 +12,12 @@ from nanobot.config.schema import Base
 class InboxItem(Base):
     """Captured raw material before routing."""
 
+    item_id: str = ""
     content_text: str = ""
     user_hint: str = ""
+    source: str = "local"
+    capture_type: str = "text"
+    timestamp: datetime | None = None
 
 
 class FactUpdate(Base):
@@ -39,7 +45,10 @@ class IntakeDecision(Base):
     """Normalized routing decision for a captured item."""
 
     entities: list[str] = Field(default_factory=list)
+    material_type: str = "reference"
+    persistence_mode: str = "quarantine"
     facts: list[FactUpdate] = Field(default_factory=list)
     history_entries: list[str] = Field(default_factory=list)
     ledger_rows: list[LedgerRow] = Field(default_factory=list)
     keep_original: bool = False
+    follow_up: FollowUpRequest | None = None

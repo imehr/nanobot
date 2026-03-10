@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import csv
+import json
 import shutil
+from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 
 from nanobot.config.schema import KnowledgeConfig
-from nanobot.knowledge.models import FactUpdate, IntakeDecision
+from nanobot.knowledge.models import FactUpdate, InboxItem, IntakeDecision
 
 
 class KnowledgeStore:
@@ -51,6 +54,26 @@ class KnowledgeStore:
             self.review_dir,
         ):
             path.mkdir(parents=True, exist_ok=True)
+
+    def save_inbox_item(self, item: InboxItem) -> Path:
+        """Persist a captured raw item into the inbox and return its directory."""
+        self.bootstrap()
+        item_id = item.item_id or uuid4().hex
+        item_dir = self.inbox_dir / item_id
+        item_dir.mkdir(parents=True, exist_ok=True)
+        record = item.model_copy(
+            update={
+                "item_id": item_id,
+                "timestamp": item.timestamp or datetime.now(),
+            }
+        )
+        (item_dir / "item.json").write_text(
+            json.dumps(record.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        if record.content_text:
+            (item_dir / "content.txt").write_text(record.content_text, encoding="utf-8")
+        return item_dir
 
     def apply_decision(
         self,
