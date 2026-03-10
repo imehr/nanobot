@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import csv
+import shutil
 from pathlib import Path
 
 from nanobot.config.schema import KnowledgeConfig
+from nanobot.knowledge.models import FactUpdate, IntakeDecision
 
 
 class KnowledgeStore:
@@ -48,3 +51,65 @@ class KnowledgeStore:
             self.review_dir,
         ):
             path.mkdir(parents=True, exist_ok=True)
+
+    def apply_decision(
+        self,
+        decision: IntakeDecision,
+        *,
+        artifact_path: Path | None = None,
+    ) -> None:
+        """Persist a routing decision into canonical files and ledgers."""
+        self.bootstrap()
+        for entity in decision.entities:
+            entity_dir = self.entities_dir / entity
+            entity_dir.mkdir(parents=True, exist_ok=True)
+            if decision.facts:
+                self._write_profile(entity_dir / "profile.md", decision.facts)
+            if decision.history_entries:
+                self._append_lines(entity_dir / "history.md", decision.history_entries)
+            if decision.keep_original and artifact_path is not None:
+                artifacts_dir = entity_dir / "artifacts"
+                artifacts_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(artifact_path, artifacts_dir / artifact_path.name)
+
+        for ledger_row in decision.ledger_rows:
+            self._append_ledger_row(ledger_row.ledger, ledger_row.row)
+
+    def _write_profile(self, profile_path: Path, facts: list[FactUpdate]) -> None:
+        existing = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
+        lines = existing.rstrip().splitlines() if existing else ["# Profile"]
+
+        for fact in facts:
+            section_header = f"## {fact.section}"
+            if section_header not in lines:
+                if lines and lines[-1] != "":
+                    lines.append("")
+                lines.append(section_header)
+            insert_at = len(lines)
+            for idx, line in enumerate(lines):
+                if line == section_header:
+                    insert_at = idx + 1
+            while insert_at < len(lines) and lines[insert_at].startswith("- "):
+                insert_at += 1
+            lines.insert(insert_at, f"- {fact.key}: {fact.value}")
+
+        profile_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+    def _append_lines(self, path: Path, entries: list[str]) -> None:
+        prefix = path.read_text(encoding="utf-8").rstrip() if path.exists() else "# History"
+        content = prefix + ("\n" if prefix else "")
+        if not content.endswith("\n"):
+            content += "\n"
+        for entry in entries:
+            content += f"\n- {entry}"
+        path.write_text(content.rstrip() + "\n", encoding="utf-8")
+
+    def _append_ledger_row(self, ledger: str, row: dict[str, str]) -> None:
+        ledger_path = self.ledgers_dir / f"{ledger}.csv"
+        fieldnames = list(row.keys())
+        write_header = not ledger_path.exists()
+        with ledger_path.open("a", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(row)
