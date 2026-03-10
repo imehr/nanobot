@@ -212,7 +212,22 @@ You are a helpful AI assistant. Be concise, accurate, and friendly.
 - Always explain what you're doing before taking actions
 - Ask for clarification when the request is ambiguous
 - Use tools to help accomplish tasks
-- Remember important information in memory/MEMORY.md; past events are logged in memory/HISTORY.md
+- Remember important information in the canonical memory files
+
+## Memory
+
+- `memory/MEMORY.md` — compact long-term summary loaded into context
+- `memory/HISTORY.md` — append-only event log, search with grep to recall past events
+- `entities/` — canonical files for real-world things like bike, house, person
+- `ledgers/` — structured records such as expenses and maintenance logs
+- `inbox/` — raw captured items before they are routed
+
+When handling raw material from capture flows:
+- preserve the original artifact first
+- route durable facts into entity files
+- route events into history
+- route transactions into ledgers
+- ask follow-up questions only when ambiguity changes storage or financial treatment
 """,
         "SOUL.md": """# Soul
 
@@ -341,6 +356,7 @@ def gateway(
     from nanobot.cron.service import CronService
     from nanobot.cron.types import CronJob
     from nanobot.heartbeat.service import HeartbeatService
+    from nanobot.knowledge.watcher import WatchedInboxService
     from nanobot.knowledge.web_inbox import LocalWebInboxServer
     
     if verbose:
@@ -410,12 +426,18 @@ def gateway(
     # Create channel manager
     channels = ChannelManager(config, bus)
     local_web_inbox = None
+    watched_inbox = None
     if config.knowledge.enabled and config.knowledge.local_web.enabled:
         local_web_inbox = LocalWebInboxServer(
             bind=config.knowledge.local_web.bind,
             port=config.knowledge.local_web.port,
             intake_service=agent.knowledge_service,
             auth_token=config.knowledge.local_web.auth_token,
+        )
+    if config.knowledge.enabled and config.knowledge.watched_paths:
+        watched_inbox = WatchedInboxService(
+            watched_paths=config.knowledge.watched_paths,
+            intake_service=agent.knowledge_service,
         )
 
     if channels.enabled_channels:
@@ -432,6 +454,10 @@ def gateway(
         console.print(
             f"[green]✓[/green] Local web inbox: http://{config.knowledge.local_web.bind}:{config.knowledge.local_web.port}/capture"
         )
+    if watched_inbox is not None:
+        console.print(
+            f"[green]✓[/green] Watched folders: {', '.join(config.knowledge.watched_paths)}"
+        )
     
     async def run():
         try:
@@ -439,6 +465,8 @@ def gateway(
             await heartbeat.start()
             if local_web_inbox is not None:
                 local_web_inbox.start()
+            if watched_inbox is not None:
+                watched_inbox.start()
             await asyncio.gather(
                 agent.run(),
                 channels.start_all(),
@@ -452,6 +480,8 @@ def gateway(
             agent.stop()
             if local_web_inbox is not None:
                 local_web_inbox.stop()
+            if watched_inbox is not None:
+                watched_inbox.stop()
             await channels.stop_all()
     
     asyncio.run(run())

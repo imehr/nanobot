@@ -20,8 +20,18 @@ You have access to:
 
 ## Memory
 
-- `memory/MEMORY.md` — long-term facts (preferences, context, relationships)
+- `memory/MEMORY.md` — compact long-term summary loaded into context
 - `memory/HISTORY.md` — append-only event log, search with grep to recall past events
+- `entities/` — canonical files for real-world things like bike, house, person
+- `ledgers/` — structured records such as expenses and maintenance logs
+- `inbox/` — raw captured items before they are routed
+
+When handling raw material from capture flows:
+- preserve the original artifact first
+- route durable facts into entity files
+- route events into history
+- route transactions into ledgers
+- ask follow-up questions only when ambiguity changes storage or financial treatment
 
 ## Scheduled Reminders
 

@@ -154,6 +154,74 @@ nanobot agent
 
 That's it! You have a working AI assistant in 2 minutes.
 
+## 🧠 Hybrid Knowledge Capture
+
+`nanobot` can now route raw material into a hybrid memory layout instead of relying only on chat history.
+
+### Storage layout
+
+- `inbox/` — raw captured items before routing
+- `entities/` — canonical files for things like `personal/bike` or `personal/house`
+- `ledgers/` — structured records such as `expenses.csv`
+- `indexes/` — routing and retrieval support files
+- `memory/MEMORY.md` — compact always-loaded summary context
+
+### Configure local capture
+
+Add this to `~/.nanobot/config.json`:
+
+```json
+{
+  "knowledge": {
+    "watchedPaths": [
+      "~/Inbox/nanobot"
+    ],
+    "localWeb": {
+      "enabled": true,
+      "bind": "127.0.0.1",
+      "port": 18791
+    }
+  }
+}
+```
+
+Start the gateway:
+
+```bash
+nanobot gateway
+```
+
+### Capture methods
+
+- **Watched folder**
+  - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Inbox/nanobot`
+- **Local web inbox**
+  - Send text from Mac shortcuts, browser tools, or other machines on your LAN
+
+```bash
+curl -X POST http://127.0.0.1:18791/capture \
+  -H 'Content-Type: application/json' \
+  -d '{"content_text":"This service invoice is for my bike","user_hint":"bike"}'
+```
+
+- **Chat channels**
+  - Use `/capture ...` in Telegram, WhatsApp, or other chat channels
+  - Example: `/capture This invoice is for my bike and the front tire pressure is 35 psi`
+  - If you attach files with `/capture`, `nanobot` preserves the uploaded file before routing it
+
+### Routing behavior
+
+For each captured item, `nanobot` will:
+
+- save the original first,
+- classify the item into one or more entities,
+- extract durable facts into entity profiles,
+- append history when the item represents an event,
+- add ledger rows when the item is transactional,
+- ask follow-up questions only when ambiguity changes storage or financial treatment.
+
+The local web inbox currently accepts JSON text capture. File uploads already work through watched folders and chat attachments.
+
 ## 💬 Chat Apps
 
 Connect nanobot to your favorite chat platform.

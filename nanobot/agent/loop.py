@@ -309,6 +309,8 @@ class AgentLoop:
 
         key = session_key or msg.session_key
         session = self.sessions.get_or_create(key)
+        capture_text = msg.content
+        capture_mode = bool(msg.metadata.get("capture_mode"))
 
         # Slash commands
         cmd = msg.content.strip().lower()
@@ -329,8 +331,11 @@ class AgentLoop:
         if cmd == "/help":
             return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id,
                                   content="🐈 nanobot commands:\n/new — Start a new conversation\n/help — Show available commands")
+        if msg.content.strip().lower().startswith("/capture"):
+            capture_mode = True
+            capture_text = msg.content.strip()[len("/capture"):].strip()
 
-        if msg.metadata.get("capture_mode"):
+        if capture_mode:
             user_hint = msg.metadata.get("user_hint", "")
             results = []
             if msg.media:
@@ -345,7 +350,7 @@ class AgentLoop:
             if not results or msg.content.strip():
                 results.append(
                     await self.knowledge_service.capture_text(
-                        msg.content,
+                        capture_text,
                         user_hint=user_hint,
                         source=msg.channel,
                     )
