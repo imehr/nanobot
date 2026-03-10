@@ -200,6 +200,8 @@ def onboard():
 
 def _create_workspace_templates(workspace: Path):
     """Create default workspace template files."""
+    from nanobot.knowledge.store import KnowledgeStore
+
     templates = {
         "AGENTS.md": """# Agent Instructions
 
@@ -277,6 +279,9 @@ This file stores important information that should persist across sessions.
     # Create skills directory for custom user skills
     skills_dir = workspace / "skills"
     skills_dir.mkdir(exist_ok=True)
+
+    KnowledgeStore(workspace).bootstrap()
+
 
 
 def _make_provider(config: Config):
