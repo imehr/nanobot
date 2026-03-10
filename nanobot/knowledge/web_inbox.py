@@ -153,7 +153,7 @@ def build_inbox_page() -> str:
         </label>
         <label>
           Attachment
-          <input type="file" name="file">
+          <input type="file" name="file" multiple>
         </label>
       </div>
       <div class="actions">
@@ -161,6 +161,96 @@ def build_inbox_page() -> str:
         <button type="submit">Capture to memory</button>
       </div>
     </form>
+  </main>
+</body>
+</html>"""
+
+
+def build_result_page(
+    *,
+    entities: list[str],
+    actions: list[str],
+    follow_up: str | None,
+) -> str:
+    """Build a human-facing result page for browser submissions."""
+    entity_html = "".join(f"<li>{entity}</li>" for entity in entities) or "<li>unclassified</li>"
+    action_html = "".join(f"<li>{action}</li>" for action in actions) or "<li>saved</li>"
+    follow_up_html = (
+        f'<section class="panel accent"><h2>Follow-up</h2><p>{follow_up}</p></section>'
+        if follow_up
+        else ""
+    )
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>capture saved</title>
+  <style>
+    :root {{
+      --paper: #f4efe2;
+      --ink: #1d1a14;
+      --muted: #746b5f;
+      --panel: #fffaf0;
+      --line: rgba(29, 26, 20, 0.16);
+      --accent: #c46a2f;
+    }}
+    body {{
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #efe4c8, var(--paper));
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+    }}
+    .shell {{
+      width: min(700px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 24px 80px rgba(29, 26, 20, 0.12);
+    }}
+    h1 {{ margin: 0 0 16px; font-size: clamp(2rem, 4vw, 3rem); line-height: 0.95; }}
+    .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
+    .panel {{
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px 18px;
+      background: rgba(255,255,255,0.6);
+    }}
+    .accent {{ border-color: rgba(196,106,47,0.4); background: rgba(196,106,47,0.08); }}
+    h2 {{ margin: 0 0 10px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }}
+    ul {{ margin: 0; padding-left: 18px; }}
+    a {{
+      display: inline-block;
+      margin-top: 18px;
+      color: white;
+      background: var(--accent);
+      padding: 12px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+    }}
+    @media (max-width: 640px) {{ .grid {{ grid-template-columns: 1fr; }} }}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <h1>captured</h1>
+    <div class="grid">
+      <section class="panel">
+        <h2>Entities</h2>
+        <ul>{entity_html}</ul>
+      </section>
+      <section class="panel">
+        <h2>Actions</h2>
+        <ul>{action_html}</ul>
+      </section>
+    </div>
+    {follow_up_html}
+    <a href="/">Capture another item</a>
   </main>
 </body>
 </html>"""
@@ -234,18 +324,34 @@ class LocalWebInboxServer:
                     content_type = self.headers.get("Content-Type", "")
                     body = self.rfile.read(length)
                     if "multipart/form-data" in content_type:
-                        result = self._handle_multipart_capture(body, content_type)
+                        results = self._handle_multipart_capture(body, content_type)
+                        entities = sorted({entity for result in results for entity in result.entities})
+                        actions = [action for result in results for action in result.actions]
+                        follow_up = next(
+                            (result.follow_up.question for result in results if result.follow_up is not None),
+                            None,
+                        )
+                        self._send(
+                            200,
+                            build_result_page(
+                                entities=entities,
+                                actions=actions,
+                                follow_up=follow_up,
+                            ),
+                            "text/html; charset=utf-8",
+                        )
+                        return
                     else:
                         result = self._handle_json_capture(body)
-                    self._send(
-                        200,
-                        build_capture_response(
-                            inbox_item_path=result.inbox_item_path,
-                            entities=result.entities,
-                            actions=result.actions,
-                            follow_up=result.follow_up.question if result.follow_up else None,
-                        ),
-                    )
+                        self._send(
+                            200,
+                            build_capture_response(
+                                inbox_item_path=result.inbox_item_path,
+                                entities=result.entities,
+                                actions=result.actions,
+                                follow_up=result.follow_up.question if result.follow_up else None,
+                            ),
+                        )
                 except Exception as exc:  # pragma: no cover - defensive server path
                     self._send(500, json.dumps({"error": str(exc)}))
 
@@ -265,7 +371,7 @@ class LocalWebInboxServer:
 
             def _handle_multipart_capture(self, body: bytes, content_type: str):
                 fields: dict[str, str] = {}
-                uploaded: dict[str, str] = {}
+                uploaded: list[tuple[str, str]] = []
 
                 def on_field(field) -> None:
                     name = field.field_name.decode() if isinstance(field.field_name, bytes) else str(field.field_name)
@@ -278,8 +384,7 @@ class LocalWebInboxServer:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as handle:
                         file.file_object.seek(0)
                         handle.write(file.file_object.read())
-                        uploaded["path"] = handle.name
-                        uploaded["name"] = filename
+                        uploaded.append((handle.name, filename))
 
                 parse_form(
                     {
@@ -292,29 +397,36 @@ class LocalWebInboxServer:
                 )
                 content_text = fields.get("content_text", "").strip()
                 user_hint = fields.get("user_hint", "").strip()
-                if "path" in uploaded:
-                    path = Path(uploaded["path"])
+                if uploaded:
+                    results = []
                     try:
-                        return asyncio.run(
-                            intake_service.capture_file(
-                                path,
-                                user_hint=user_hint,
-                                source="web-inbox",
-                                content_text=content_text,
+                        for temp_path, _filename in uploaded:
+                            path = Path(temp_path)
+                            results.append(
+                                asyncio.run(
+                                    intake_service.capture_file(
+                                        path,
+                                        user_hint=user_hint,
+                                        source="web-inbox",
+                                        content_text=content_text,
+                                    )
+                                )
                             )
-                        )
+                        return results
                     finally:
-                        if path.exists():
-                            os.unlink(path)
+                        for temp_path, _filename in uploaded:
+                            path = Path(temp_path)
+                            if path.exists():
+                                os.unlink(path)
                 if not content_text:
                     raise ValueError("content_text_required")
-                return asyncio.run(
+                return [asyncio.run(
                     intake_service.capture_text(
                         content_text,
                         user_hint=user_hint,
                         source="web-inbox",
                     )
-                )
+                )]
 
             def log_message(self, format: str, *args) -> None:  # noqa: A003
                 return

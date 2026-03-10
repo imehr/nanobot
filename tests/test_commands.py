@@ -7,6 +7,7 @@ from typer.testing import CliRunner
 
 from nanobot.cli.commands import app
 from nanobot.config.schema import Config
+from nanobot.knowledge.service import CaptureResult
 from nanobot.providers.litellm_provider import LiteLLMProvider
 from nanobot.providers.openai_codex_provider import _strip_model_prefix
 from nanobot.providers.registry import find_by_model
@@ -132,3 +133,51 @@ def test_litellm_provider_canonicalizes_github_copilot_hyphen_prefix():
 def test_openai_codex_strip_prefix_supports_hyphen_and_underscore():
     assert _strip_model_prefix("openai-codex/gpt-5.1-codex") == "gpt-5.1-codex"
     assert _strip_model_prefix("openai_codex/gpt-5.1-codex") == "gpt-5.1-codex"
+
+
+def test_capture_text_command_uses_knowledge_service(tmp_path):
+    class FakeService:
+        async def capture_text(self, content_text, *, user_hint="", source="local"):
+            assert content_text == "Bike invoice"
+            assert user_hint == "bike"
+            assert source == "cli"
+            return CaptureResult(
+                inbox_item_path=tmp_path / "item",
+                entities=["personal/bike"],
+                actions=["saved original"],
+            )
+
+    config = Config.model_validate({})
+    config.agents.defaults.workspace = str(tmp_path)
+
+    with patch("nanobot.config.loader.load_config", return_value=config), \
+         patch("nanobot.cli.commands._make_knowledge_service", return_value=FakeService()):
+        result = runner.invoke(app, ["capture", "text", "Bike invoice", "--hint", "bike"])
+
+    assert result.exit_code == 0
+    assert "personal/bike" in result.stdout
+
+
+def test_capture_file_command_uses_knowledge_service(tmp_path):
+    class FakeService:
+        async def capture_file(self, file_path, *, user_hint="", source="local", content_text=""):
+            assert file_path.name == "invoice.pdf"
+            assert user_hint == "bike"
+            assert source == "cli"
+            return CaptureResult(
+                inbox_item_path=tmp_path / "item",
+                entities=["personal/bike"],
+                actions=["saved original"],
+            )
+
+    config = Config.model_validate({})
+    config.agents.defaults.workspace = str(tmp_path)
+    artifact = tmp_path / "invoice.pdf"
+    artifact.write_text("stub", encoding="utf-8")
+
+    with patch("nanobot.config.loader.load_config", return_value=config), \
+         patch("nanobot.cli.commands._make_knowledge_service", return_value=FakeService()):
+        result = runner.invoke(app, ["capture", "file", str(artifact), "--hint", "bike"])
+
+    assert result.exit_code == 0
+    assert "personal/bike" in result.stdout

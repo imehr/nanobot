@@ -193,6 +193,15 @@ nanobot gateway
 
 ### Capture methods
 
+- **Mac CLI wrappers**
+  - These are the easiest hooks for Shortcuts and Quick Actions
+
+```bash
+nanobot capture text "This is my regular bike service centre" --hint bike
+nanobot capture file ~/Downloads/invoice.pdf --hint bike --note "10,000 km service"
+nanobot capture clipboard --hint bike
+```
+
 - **Watched folder**
   - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Inbox/nanobot`
 - **Local web inbox**
@@ -205,7 +214,7 @@ curl -X POST http://127.0.0.1:18791/capture \
 ```
 
 - **Browser UI**
-  - Open `http://127.0.0.1:18791/` for a local capture page with note, hint, and file upload fields
+  - Open `http://127.0.0.1:18791/` for a local capture page with note, hint, multi-file upload, and a human-readable result screen
 
 - **Chat channels**
   - Use `/capture ...` in Telegram, WhatsApp, or other chat channels
@@ -224,6 +233,16 @@ For each captured item, `nanobot` will:
 - ask follow-up questions only when ambiguity changes storage or financial treatment.
 
 The local web inbox now supports both JSON text capture and browser-based file upload.
+
+### Recommended Mac setup
+
+1. Create a watched folder such as `~/Inbox/nanobot`
+2. Keep `nanobot gateway` running
+3. Use one or more of:
+   - a Shortcut that runs `nanobot capture clipboard --hint bike`
+   - a Quick Action that runs `nanobot capture file "$1" --hint bike`
+   - drag-and-drop into the watched folder
+   - the browser inbox at `http://127.0.0.1:18791/`
 
 ## 💬 Chat Apps
 

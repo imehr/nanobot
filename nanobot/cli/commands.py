@@ -26,6 +26,8 @@ app = typer.Typer(
     help=f"{__logo__} nanobot - Personal AI Assistant",
     no_args_is_help=True,
 )
+capture_app = typer.Typer(help="Capture raw material into hybrid memory")
+app.add_typer(capture_app, name="capture")
 
 console = Console()
 EXIT_COMMANDS = {"exit", "quit", "/exit", "/quit", ":q"}
@@ -337,9 +339,88 @@ def _make_provider(config: Config):
     )
 
 
+def _make_knowledge_service(config: Config):
+    """Create the knowledge intake service from config."""
+    from nanobot.knowledge.router import KnowledgeRouter
+    from nanobot.knowledge.service import KnowledgeIntakeService
+
+    provider = _make_provider(config)
+    return KnowledgeIntakeService(
+        config.workspace_path,
+        router=KnowledgeRouter(provider=provider, model=config.agents.defaults.model),
+        config=config.knowledge,
+    )
+
+
+def _render_capture_result(result) -> None:
+    """Print a concise capture summary to the terminal."""
+    if result.follow_up is not None:
+        console.print(result.follow_up.question)
+        return
+    entities = ", ".join(result.entities) if result.entities else "unclassified"
+    actions = ", ".join(result.actions) if result.actions else "saved"
+    console.print(f"Captured to {entities}. Actions: {actions}.")
+
+
 # ============================================================================
 # Gateway / Server
 # ============================================================================
+
+
+@capture_app.command("text")
+def capture_text_command(
+    text: str = typer.Argument("", help="Text to capture"),
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+    stdin: bool = typer.Option(False, "--stdin", help="Read capture text from stdin"),
+):
+    """Capture a text note into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    config = load_config()
+    service = _make_knowledge_service(config)
+    content = sys.stdin.read().strip() if stdin else text.strip()
+    if not content:
+        console.print("[red]Error: No text to capture.[/red]")
+        raise typer.Exit(1)
+    result = asyncio.run(service.capture_text(content, user_hint=hint, source="cli"))
+    _render_capture_result(result)
+
+
+@capture_app.command("file")
+def capture_file_command(
+    path: Path = typer.Argument(..., exists=True, dir_okay=False, readable=True, resolve_path=True),
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+    note: str = typer.Option("", "--note", help="Optional text context to send with the file"),
+):
+    """Capture a file into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    config = load_config()
+    service = _make_knowledge_service(config)
+    result = asyncio.run(
+        service.capture_file(path, user_hint=hint, source="cli", content_text=note.strip())
+    )
+    _render_capture_result(result)
+
+
+@capture_app.command("clipboard")
+def capture_clipboard_command(
+    hint: str = typer.Option("", "--hint", help="Optional routing hint like 'bike' or 'expense'"),
+):
+    """Capture the current macOS clipboard text into the hybrid memory system."""
+    from nanobot.config.loader import load_config
+
+    if sys.platform != "darwin":
+        console.print("[red]Error: Clipboard capture is currently implemented for macOS only.[/red]")
+        raise typer.Exit(1)
+    clipboard = os.popen("pbpaste").read().strip()
+    if not clipboard:
+        console.print("[red]Error: Clipboard is empty.[/red]")
+        raise typer.Exit(1)
+    config = load_config()
+    service = _make_knowledge_service(config)
+    result = asyncio.run(service.capture_text(clipboard, user_hint=hint, source="cli"))
+    _render_capture_result(result)
 
 
 @app.command()
