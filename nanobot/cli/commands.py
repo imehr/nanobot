@@ -341,6 +341,7 @@ def gateway(
     from nanobot.cron.service import CronService
     from nanobot.cron.types import CronJob
     from nanobot.heartbeat.service import HeartbeatService
+    from nanobot.knowledge.web_inbox import LocalWebInboxServer
     
     if verbose:
         import logging
@@ -408,7 +409,15 @@ def gateway(
     
     # Create channel manager
     channels = ChannelManager(config, bus)
-    
+    local_web_inbox = None
+    if config.knowledge.enabled and config.knowledge.local_web.enabled:
+        local_web_inbox = LocalWebInboxServer(
+            bind=config.knowledge.local_web.bind,
+            port=config.knowledge.local_web.port,
+            intake_service=agent.knowledge_service,
+            auth_token=config.knowledge.local_web.auth_token,
+        )
+
     if channels.enabled_channels:
         console.print(f"[green]✓[/green] Channels enabled: {', '.join(channels.enabled_channels)}")
     else:
@@ -419,11 +428,17 @@ def gateway(
         console.print(f"[green]✓[/green] Cron: {cron_status['jobs']} scheduled jobs")
     
     console.print(f"[green]✓[/green] Heartbeat: every 30m")
+    if local_web_inbox is not None:
+        console.print(
+            f"[green]✓[/green] Local web inbox: http://{config.knowledge.local_web.bind}:{config.knowledge.local_web.port}/capture"
+        )
     
     async def run():
         try:
             await cron.start()
             await heartbeat.start()
+            if local_web_inbox is not None:
+                local_web_inbox.start()
             await asyncio.gather(
                 agent.run(),
                 channels.start_all(),
@@ -435,6 +450,8 @@ def gateway(
             heartbeat.stop()
             cron.stop()
             agent.stop()
+            if local_web_inbox is not None:
+                local_web_inbox.stop()
             await channels.stop_all()
     
     asyncio.run(run())
