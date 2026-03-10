@@ -63,8 +63,33 @@ class MemoryStore:
             f.write(entry.rstrip() + "\n\n")
 
     def get_memory_context(self) -> str:
+        parts: list[str] = []
         long_term = self.read_long_term()
-        return f"## Long-term Memory\n{long_term}" if long_term else ""
+        if long_term:
+            parts.append(f"## Long-term Memory\n{long_term}")
+
+        knowledge_summary = self._build_knowledge_summary()
+        if knowledge_summary:
+            parts.append(f"## Canonical Knowledge\n{knowledge_summary}")
+
+        return "\n\n".join(parts)
+
+    def _build_knowledge_summary(self) -> str:
+        """Summarize canonical entity profiles for prompt context."""
+        entities_dir = self.memory_dir.parent / "entities"
+        if not entities_dir.exists():
+            return ""
+
+        chunks: list[str] = []
+        for profile in sorted(entities_dir.glob("**/profile.md")):
+            rel = profile.relative_to(entities_dir).parent.as_posix()
+            lines = [line.strip() for line in profile.read_text(encoding="utf-8").splitlines() if line.strip()]
+            bullets = [line for line in lines if line.startswith("- ")]
+            if not bullets:
+                continue
+            chunks.append(f"### {rel}\n" + "\n".join(bullets[:5]))
+
+        return "\n\n".join(chunks)
 
     async def consolidate(
         self,
