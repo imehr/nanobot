@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from nanobot.knowledge.web_inbox import build_capture_response
+from nanobot.knowledge.web_inbox import build_capture_response, build_inbox_page
 
 
 def test_build_capture_response_includes_follow_up() -> None:
@@ -16,3 +16,11 @@ def test_build_capture_response_includes_follow_up() -> None:
 
     assert body["entities"] == ["personal/bike"]
     assert body["follow_up"] == "Is this personal or business?"
+
+
+def test_build_inbox_page_includes_upload_form() -> None:
+    page = build_inbox_page()
+
+    assert 'method="post"' in page.lower()
+    assert 'enctype="multipart/form-data"' in page
+    assert 'type="file"' in page.lower()

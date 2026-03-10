@@ -58,9 +58,16 @@ class KnowledgeIntakeService:
             follow_up=decision.follow_up,
         )
 
-    async def capture_file(self, file_path: Path, *, user_hint: str = "", source: str = "local") -> CaptureResult:
+    async def capture_file(
+        self,
+        file_path: Path,
+        *,
+        user_hint: str = "",
+        source: str = "local",
+        content_text: str = "",
+    ) -> CaptureResult:
         item = InboxItem(
-            content_text=f"Uploaded file: {file_path.name}",
+            content_text=content_text or f"Uploaded file: {file_path.name}",
             user_hint=user_hint,
             source=source,
             capture_type="file",

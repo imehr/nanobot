@@ -196,13 +196,16 @@ nanobot gateway
 - **Watched folder**
   - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Inbox/nanobot`
 - **Local web inbox**
-  - Send text from Mac shortcuts, browser tools, or other machines on your LAN
+  - Send notes or upload a file from Mac shortcuts, browser tools, or other machines on your LAN
 
 ```bash
 curl -X POST http://127.0.0.1:18791/capture \
   -H 'Content-Type: application/json' \
   -d '{"content_text":"This service invoice is for my bike","user_hint":"bike"}'
 ```
+
+- **Browser UI**
+  - Open `http://127.0.0.1:18791/` for a local capture page with note, hint, and file upload fields
 
 - **Chat channels**
   - Use `/capture ...` in Telegram, WhatsApp, or other chat channels
@@ -220,7 +223,7 @@ For each captured item, `nanobot` will:
 - add ledger rows when the item is transactional,
 - ask follow-up questions only when ambiguity changes storage or financial treatment.
 
-The local web inbox currently accepts JSON text capture. File uploads already work through watched folders and chat attachments.
+The local web inbox now supports both JSON text capture and browser-based file upload.
 
 ## 💬 Chat Apps
 
