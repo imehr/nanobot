@@ -29,6 +29,7 @@ from nanobot.session.manager import Session, SessionManager
 if TYPE_CHECKING:
     from nanobot.config.schema import ExecToolConfig
     from nanobot.cron.service import CronService
+    from nanobot.knowledge.service import KnowledgeIntakeService
 
 
 class AgentLoop:
@@ -59,8 +60,11 @@ class AgentLoop:
         restrict_to_workspace: bool = False,
         session_manager: SessionManager | None = None,
         mcp_servers: dict | None = None,
+        knowledge_service: KnowledgeIntakeService | None = None,
     ):
         from nanobot.config.schema import ExecToolConfig
+        from nanobot.knowledge.router import KnowledgeRouter
+        from nanobot.knowledge.service import KnowledgeIntakeService
         self.bus = bus
         self.provider = provider
         self.workspace = workspace
@@ -75,6 +79,10 @@ class AgentLoop:
         self.restrict_to_workspace = restrict_to_workspace
 
         self.context = ContextBuilder(workspace)
+        self.knowledge_service = knowledge_service or KnowledgeIntakeService(
+            workspace,
+            router=KnowledgeRouter(provider=provider, model=self.model),
+        )
         self.sessions = session_manager or SessionManager(workspace)
         self.tools = ToolRegistry()
         self.subagents = SubagentManager(
@@ -321,6 +329,25 @@ class AgentLoop:
         if cmd == "/help":
             return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id,
                                   content="🐈 nanobot commands:\n/new — Start a new conversation\n/help — Show available commands")
+
+        if msg.metadata.get("capture_mode"):
+            result = await self.knowledge_service.capture_text(
+                msg.content,
+                user_hint=msg.metadata.get("user_hint", ""),
+                source=msg.channel,
+            )
+            if result.follow_up is not None:
+                content = result.follow_up.question
+            else:
+                entities = ", ".join(result.entities) if result.entities else "unclassified"
+                actions = ", ".join(result.actions) if result.actions else "saved"
+                content = f"Captured to {entities}. Actions: {actions}."
+            return OutboundMessage(
+                channel=msg.channel,
+                chat_id=msg.chat_id,
+                content=content,
+                metadata=msg.metadata or {},
+            )
 
         if len(session.messages) > self.memory_window and session.key not in self._consolidating:
             self._consolidating.add(session.key)
