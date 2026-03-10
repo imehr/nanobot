@@ -75,6 +75,14 @@ class KnowledgeStore:
             (item_dir / "content.txt").write_text(record.content_text, encoding="utf-8")
         return item_dir
 
+    def attach_file(self, item_dir: Path, file_path: Path) -> Path:
+        """Copy an uploaded file into the inbox item directory."""
+        attachments_dir = item_dir / "attachments"
+        attachments_dir.mkdir(parents=True, exist_ok=True)
+        destination = attachments_dir / file_path.name
+        shutil.copy2(file_path, destination)
+        return destination
+
     def apply_decision(
         self,
         decision: IntakeDecision,

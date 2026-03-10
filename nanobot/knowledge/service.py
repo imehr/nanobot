@@ -57,3 +57,24 @@ class KnowledgeIntakeService:
             actions=actions,
             follow_up=decision.follow_up,
         )
+
+    async def capture_file(self, file_path: Path, *, user_hint: str = "", source: str = "local") -> CaptureResult:
+        item = InboxItem(
+            content_text=f"Uploaded file: {file_path.name}",
+            user_hint=user_hint,
+            source=source,
+            capture_type="file",
+        )
+        inbox_item_path = self.store.save_inbox_item(item)
+        self.store.attach_file(inbox_item_path, file_path)
+        decision = await self.router.route(item, current_memory=self.memory.read_long_term())
+        actions = ["saved original"]
+        if decision.follow_up is None:
+            self.store.apply_decision(decision, artifact_path=file_path)
+            actions.append("applied decision")
+        return CaptureResult(
+            inbox_item_path=inbox_item_path,
+            entities=decision.entities,
+            actions=actions,
+            follow_up=decision.follow_up,
+        )

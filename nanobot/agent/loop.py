@@ -331,16 +331,35 @@ class AgentLoop:
                                   content="🐈 nanobot commands:\n/new — Start a new conversation\n/help — Show available commands")
 
         if msg.metadata.get("capture_mode"):
-            result = await self.knowledge_service.capture_text(
-                msg.content,
-                user_hint=msg.metadata.get("user_hint", ""),
-                source=msg.channel,
-            )
-            if result.follow_up is not None:
-                content = result.follow_up.question
+            user_hint = msg.metadata.get("user_hint", "")
+            results = []
+            if msg.media:
+                for media_path in msg.media:
+                    results.append(
+                        await self.knowledge_service.capture_file(
+                            Path(media_path),
+                            user_hint=user_hint,
+                            source=msg.channel,
+                        )
+                    )
+            if not results or msg.content.strip():
+                results.append(
+                    await self.knowledge_service.capture_text(
+                        msg.content,
+                        user_hint=user_hint,
+                        source=msg.channel,
+                    )
+                )
+
+            follow_up = next((result.follow_up for result in results if result.follow_up is not None), None)
+            all_entities = sorted({entity for result in results for entity in result.entities})
+            all_actions = [action for result in results for action in result.actions]
+
+            if follow_up is not None:
+                content = follow_up.question
             else:
-                entities = ", ".join(result.entities) if result.entities else "unclassified"
-                actions = ", ".join(result.actions) if result.actions else "saved"
+                entities = ", ".join(all_entities) if all_entities else "unclassified"
+                actions = ", ".join(all_actions) if all_actions else "saved"
                 content = f"Captured to {entities}. Actions: {actions}."
             return OutboundMessage(
                 channel=msg.channel,
