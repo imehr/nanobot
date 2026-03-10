@@ -1,4 +1,5 @@
 .assets
+.worktrees/
 .env
 *.pyc
 dist/
