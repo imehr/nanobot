@@ -181,3 +181,94 @@ def test_capture_file_command_uses_knowledge_service(tmp_path):
 
     assert result.exit_code == 0
     assert "personal/bike" in result.stdout
+
+
+def test_gateway_starts_native_capture_server_when_enabled(tmp_path):
+    class FakeAgentLoop:
+        def __init__(self, *args, **kwargs):
+            self.knowledge_service = object()
+
+        async def run(self):
+            return None
+
+        async def close_mcp(self):
+            return None
+
+        def stop(self):
+            return None
+
+        async def process_direct(self, *args, **kwargs):
+            return ""
+
+    class FakeChannelManager:
+        def __init__(self, *args, **kwargs):
+            self.enabled_channels = []
+
+        async def start_all(self):
+            return None
+
+        async def stop_all(self):
+            return None
+
+    class FakeCronService:
+        def __init__(self, *args, **kwargs):
+            self.on_job = None
+
+        def status(self):
+            return {"jobs": 0}
+
+        async def start(self):
+            return None
+
+        def stop(self):
+            return None
+
+    class FakeHeartbeatService:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def start(self):
+            return None
+
+        def stop(self):
+            return None
+
+    class FakeNativeCaptureServer:
+        started = False
+        stopped = False
+        kwargs = {}
+
+        def __init__(self, **kwargs):
+            type(self).kwargs = kwargs
+
+        def start(self):
+            type(self).started = True
+
+        def stop(self):
+            type(self).stopped = True
+
+    config = Config.model_validate({})
+    config.agents.defaults.workspace = str(tmp_path)
+    config.knowledge.local_web.enabled = False
+    config.knowledge.native_capture.enabled = True
+    config.knowledge.native_capture.bind = "127.0.0.1"
+    config.knowledge.native_capture.port = 18792
+    config.knowledge.native_capture.auth_token = "native-secret"
+
+    with patch("nanobot.config.loader.load_config", return_value=config), \
+         patch("nanobot.config.loader.get_data_dir", return_value=tmp_path), \
+         patch("nanobot.cli.commands._make_provider", return_value=object()), \
+         patch("nanobot.bus.queue.MessageBus"), \
+         patch("nanobot.agent.loop.AgentLoop", FakeAgentLoop), \
+         patch("nanobot.channels.manager.ChannelManager", FakeChannelManager), \
+         patch("nanobot.session.manager.SessionManager"), \
+         patch("nanobot.cron.service.CronService", FakeCronService), \
+         patch("nanobot.heartbeat.service.HeartbeatService", FakeHeartbeatService), \
+         patch("nanobot.knowledge.native_inbox.NativeCaptureServer", FakeNativeCaptureServer):
+        result = runner.invoke(app, ["gateway"])
+
+    assert result.exit_code == 0
+    assert "Native capture endpoint: http://127.0.0.1:18792/capture" in result.stdout
+    assert FakeNativeCaptureServer.kwargs["auth_token"] == "native-secret"
+    assert FakeNativeCaptureServer.started is True
+    assert FakeNativeCaptureServer.stopped is True

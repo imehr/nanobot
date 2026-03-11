@@ -437,6 +437,7 @@ def gateway(
     from nanobot.cron.service import CronService
     from nanobot.cron.types import CronJob
     from nanobot.heartbeat.service import HeartbeatService
+    from nanobot.knowledge.native_inbox import NativeCaptureServer
     from nanobot.knowledge.watcher import WatchedInboxService
     from nanobot.knowledge.web_inbox import LocalWebInboxServer
     
@@ -507,6 +508,7 @@ def gateway(
     # Create channel manager
     channels = ChannelManager(config, bus)
     local_web_inbox = None
+    native_capture_inbox = None
     watched_inbox = None
     if config.knowledge.enabled and config.knowledge.local_web.enabled:
         local_web_inbox = LocalWebInboxServer(
@@ -514,6 +516,13 @@ def gateway(
             port=config.knowledge.local_web.port,
             intake_service=agent.knowledge_service,
             auth_token=config.knowledge.local_web.auth_token,
+        )
+    if config.knowledge.enabled and config.knowledge.native_capture.enabled:
+        native_capture_inbox = NativeCaptureServer(
+            bind=config.knowledge.native_capture.bind,
+            port=config.knowledge.native_capture.port,
+            intake_service=agent.knowledge_service,
+            auth_token=config.knowledge.native_capture.auth_token,
         )
     if config.knowledge.enabled and config.knowledge.watched_paths:
         watched_inbox = WatchedInboxService(
@@ -535,6 +544,10 @@ def gateway(
         console.print(
             f"[green]✓[/green] Local web inbox: http://{config.knowledge.local_web.bind}:{config.knowledge.local_web.port}/capture"
         )
+    if native_capture_inbox is not None:
+        console.print(
+            f"[green]✓[/green] Native capture endpoint: http://{config.knowledge.native_capture.bind}:{config.knowledge.native_capture.port}/capture"
+        )
     if watched_inbox is not None:
         console.print(
             f"[green]✓[/green] Watched folders: {', '.join(config.knowledge.watched_paths)}"
@@ -546,6 +559,8 @@ def gateway(
             await heartbeat.start()
             if local_web_inbox is not None:
                 local_web_inbox.start()
+            if native_capture_inbox is not None:
+                native_capture_inbox.start()
             if watched_inbox is not None:
                 watched_inbox.start()
             await asyncio.gather(
@@ -561,6 +576,8 @@ def gateway(
             agent.stop()
             if local_web_inbox is not None:
                 local_web_inbox.stop()
+            if native_capture_inbox is not None:
+                native_capture_inbox.stop()
             if watched_inbox is not None:
                 watched_inbox.stop()
             await channels.stop_all()
