@@ -78,7 +78,7 @@ final class NativeCaptureClientTests: XCTestCase {
     }
 }
 
-private final class StubTokenStore: TokenStore {
+private final class StubTokenStore: TokenStore, @unchecked Sendable {
     private var token: String?
 
     init(token: String?) {

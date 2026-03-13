@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-protocol TokenStore {
+protocol TokenStore: Sendable {
     func readToken() throws -> String?
     func writeToken(_ token: String) throws
 }
@@ -11,7 +11,7 @@ enum KeychainStoreError: Error {
     case invalidData
 }
 
-final class KeychainStore: TokenStore {
+final class KeychainStore: TokenStore, @unchecked Sendable {
     private let service: String
     private let account: String
 

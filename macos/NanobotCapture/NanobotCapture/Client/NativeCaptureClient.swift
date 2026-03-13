@@ -1,6 +1,6 @@
 import Foundation
 
-protocol HTTPSession {
+protocol HTTPSession: Sendable {
     func data(for request: URLRequest) async throws -> (Data, URLResponse)
 }
 
@@ -19,7 +19,7 @@ enum NativeCaptureClientError: Error {
     case filePayloadRequired
 }
 
-final class NativeCaptureClient {
+final class NativeCaptureClient: @unchecked Sendable {
     private let captureURL: URL
     private let session: HTTPSession
     private let tokenStore: TokenStore

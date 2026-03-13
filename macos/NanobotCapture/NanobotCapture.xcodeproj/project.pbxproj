@@ -14,7 +14,10 @@
 		46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */; };
 		8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F98504255BCC72B0B7129C /* AppState.swift */; };
 		9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */; };
+		AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */; };
+		BC0B22E9E8369083BCB63303 /* FileDropZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D0B9D956E0558978EA7775 /* FileDropZone.swift */; };
 		BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */; };
+		C78950FC69FAFEA195A066BF /* CaptureWindowViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */; };
 		C9F2151A49871802E290CA8D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F608EFEA601348DBBC75F7D1 /* ContentView.swift */; };
 		ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A386DE1DA0DD21048BB5A7B /* ShareView.swift */; };
 /* End PBXBuildFile section */
@@ -30,6 +33,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowViewModelTests.swift; sourceTree = "<group>"; };
 		26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClientTests.swift; sourceTree = "<group>"; };
 		4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanobotCaptureApp.swift; sourceTree = "<group>"; };
 		5A386DE1DA0DD21048BB5A7B /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
@@ -37,9 +41,11 @@
 		77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClient.swift; sourceTree = "<group>"; };
 		80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NanobotCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		84F98504255BCC72B0B7129C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		92D0B9D956E0558978EA7775 /* FileDropZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropZone.swift; sourceTree = "<group>"; };
 		A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePayload.swift; sourceTree = "<group>"; };
 		DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowView.swift; sourceTree = "<group>"; };
 		EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F608EFEA601348DBBC75F7D1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F718434B24FD6FD76ACA2B27 /* NanobotCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NanobotCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -66,6 +72,15 @@
 			);
 			sourceTree = "<group>";
 		};
+		4F7DEBE8A48DDDCC5AC93F24 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */,
+				92D0B9D956E0558978EA7775 /* FileDropZone.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		728FC1E557D4ABF50ECB1A0F /* Client */ = {
 			isa = PBXGroup;
 			children = (
@@ -81,6 +96,7 @@
 			children = (
 				13AA3E5FF157538A2AD36B15 /* App */,
 				728FC1E557D4ABF50ECB1A0F /* Client */,
+				4F7DEBE8A48DDDCC5AC93F24 /* UI */,
 			);
 			path = NanobotCapture;
 			sourceTree = "<group>";
@@ -88,6 +104,7 @@
 		C0B8C4880730245CDD8AE041 /* NanobotCaptureTests */ = {
 			isa = PBXGroup;
 			children = (
+				0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */,
 				26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */,
 				DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */,
 			);
@@ -205,6 +222,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C78950FC69FAFEA195A066BF /* CaptureWindowViewModelTests.swift in Sources */,
 				15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */,
 				9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */,
 			);
@@ -225,7 +243,9 @@
 			files = (
 				8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */,
 				356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */,
+				AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */,
 				C9F2151A49871802E290CA8D /* ContentView.swift in Sources */,
+				BC0B22E9E8369083BCB63303 /* FileDropZone.swift in Sources */,
 				1F575779E977B72B9F37A570 /* KeychainStore.swift in Sources */,
 				1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */,
 				BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */,
