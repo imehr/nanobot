@@ -10,5 +10,11 @@ struct NanobotCaptureApp: App {
                 .environmentObject(appState)
                 .frame(minWidth: 560, minHeight: 420)
         }
+
+        MenuBarExtra("Nanobot", systemImage: "tray.and.arrow.down.fill") {
+            MenuBarCaptureView()
+                .environmentObject(appState)
+        }
+        .menuBarExtraStyle(.window)
     }
 }

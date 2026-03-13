@@ -2,6 +2,41 @@ import AppKit
 import Foundation
 
 @MainActor
+final class MenuBarCaptureViewModel: ObservableObject {
+    @Published var note: String = ""
+    @Published var hint: String = ""
+    @Published var resultMessage: String = ""
+    @Published var isSubmitting: Bool = false
+
+    var canSubmit: Bool {
+        !isSubmitting && !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    @discardableResult
+    func loadClipboardText(_ text: String?) -> Bool {
+        guard let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return false
+        }
+        note = text
+        return true
+    }
+
+    func applyResult(_ response: CaptureResponse) {
+        var lines = ["Saved to \(response.inboxItemPath)"]
+        if let entity = response.entities.first {
+            lines.append(entity)
+        }
+        if let action = response.actions.first {
+            lines.append(action)
+        }
+        if let followUp = response.followUp, !followUp.isEmpty {
+            lines.append("Follow-up: \(followUp)")
+        }
+        resultMessage = lines.joined(separator: "\n")
+    }
+}
+
+@MainActor
 final class CaptureWindowViewModel: ObservableObject {
     @Published var note: String = ""
     @Published var hint: String = ""
@@ -100,6 +135,7 @@ final class AppState: ObservableObject {
     @Published var lastStatus: String = "Ready"
     @Published var isCaptureWindowVisible: Bool = true
     @Published var captureWindow = CaptureWindowViewModel()
+    @Published var menuBarCapture = MenuBarCaptureViewModel()
     let client: NativeCaptureClient
 
     init(client: NativeCaptureClient? = nil) {
@@ -130,6 +166,52 @@ final class AppState: ObservableObject {
     func submitCapture() async {
         await captureWindow.submit(using: client)
         lastStatus = captureWindow.resultMessage.isEmpty ? "Ready" : captureWindow.resultMessage
+    }
+
+    func loadClipboardIntoMenuBar() {
+        let text = NSPasteboard.general.string(forType: .string)
+        if menuBarCapture.loadClipboardText(text) {
+            lastStatus = "Loaded clipboard text"
+        } else {
+            lastStatus = "Clipboard is empty"
+        }
+    }
+
+    func submitMenuBarCapture() async {
+        guard menuBarCapture.canSubmit else {
+            return
+        }
+
+        menuBarCapture.isSubmitting = true
+        defer { menuBarCapture.isSubmitting = false }
+
+        do {
+            let hint = menuBarCapture.hint.trimmingCharacters(in: .whitespacesAndNewlines)
+            let response = try await client.submit(
+                .text(
+                    contentText: menuBarCapture.note.trimmingCharacters(in: .whitespacesAndNewlines),
+                    userHint: hint.isEmpty ? nil : hint
+                )
+            )
+            menuBarCapture.applyResult(response)
+            lastStatus = menuBarCapture.resultMessage
+        } catch {
+            menuBarCapture.resultMessage = "Capture failed: \(error.localizedDescription)"
+            lastStatus = menuBarCapture.resultMessage
+        }
+    }
+
+    func openCaptureWindowFromMenuBar() {
+        if !menuBarCapture.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            captureWindow.note = menuBarCapture.note
+        }
+        if !menuBarCapture.hint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            captureWindow.hint = menuBarCapture.hint
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        if let window = NSApp.windows.first {
+            window.makeKeyAndOrderFront(nil)
+        }
     }
 
     private static func buildDefaultClient() -> NativeCaptureClient {
