@@ -7,11 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */; };
 		1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */; };
+		1F575779E977B72B9F37A570 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */; };
+		356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
 		46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */; };
 		8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F98504255BCC72B0B7129C /* AppState.swift */; };
 		9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */; };
-		B589570C6A7BB81C80E0B374 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C42D846F7742EC720B4FA2C7 /* Assets.xcassets */; };
+		BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */; };
 		C9F2151A49871802E290CA8D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F608EFEA601348DBBC75F7D1 /* ContentView.swift */; };
 		ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A386DE1DA0DD21048BB5A7B /* ShareView.swift */; };
 /* End PBXBuildFile section */
@@ -27,15 +30,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClientTests.swift; sourceTree = "<group>"; };
 		4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanobotCaptureApp.swift; sourceTree = "<group>"; };
 		5A386DE1DA0DD21048BB5A7B /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
 		707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NanobotCaptureShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClient.swift; sourceTree = "<group>"; };
 		80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NanobotCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		84F98504255BCC72B0B7129C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		85CF6F041A5A6B2914FB3E7A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		AB952AF6114D19ADF5745DF4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		AF73A8988AE156DF66AEDE95 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		C42D846F7742EC720B4FA2C7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePayload.swift; sourceTree = "<group>"; };
 		DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F608EFEA601348DBBC75F7D1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -63,20 +66,21 @@
 			);
 			sourceTree = "<group>";
 		};
-		7CDFB0EF8D9723BE46D27AFA /* Resources */ = {
+		728FC1E557D4ABF50ECB1A0F /* Client */ = {
 			isa = PBXGroup;
 			children = (
-				C42D846F7742EC720B4FA2C7 /* Assets.xcassets */,
+				ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */,
+				A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */,
+				77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */,
 			);
-			path = Resources;
+			path = Client;
 			sourceTree = "<group>";
 		};
 		955F8E75C1F6EAE51EE67638 /* NanobotCapture */ = {
 			isa = PBXGroup;
 			children = (
-				AF73A8988AE156DF66AEDE95 /* Info.plist */,
 				13AA3E5FF157538A2AD36B15 /* App */,
-				7CDFB0EF8D9723BE46D27AFA /* Resources */,
+				728FC1E557D4ABF50ECB1A0F /* Client */,
 			);
 			path = NanobotCapture;
 			sourceTree = "<group>";
@@ -84,7 +88,7 @@
 		C0B8C4880730245CDD8AE041 /* NanobotCaptureTests */ = {
 			isa = PBXGroup;
 			children = (
-				AB952AF6114D19ADF5745DF4 /* Info.plist */,
+				26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */,
 				DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */,
 			);
 			path = NanobotCaptureTests;
@@ -103,7 +107,6 @@
 		FB449C4D186E35E384278A67 /* NanobotCaptureShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				85CF6F041A5A6B2914FB3E7A /* Info.plist */,
 				5A386DE1DA0DD21048BB5A7B /* ShareView.swift */,
 				EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */,
 			);
@@ -136,7 +139,6 @@
 			buildConfigurationList = 5C549F51616B38F66348CD63 /* Build configuration list for PBXNativeTarget "NanobotCapture" */;
 			buildPhases = (
 				EF882690D8180CBE2EB77CB1 /* Sources */,
-				376F4A26617E19FFB32FEA43 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -198,22 +200,12 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXResourcesBuildPhase section */
-		376F4A26617E19FFB32FEA43 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				B589570C6A7BB81C80E0B374 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		A1A946B58D3E8A9711E49204 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */,
 				9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -232,8 +224,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */,
+				356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */,
 				C9F2151A49871802E290CA8D /* ContentView.swift in Sources */,
+				1F575779E977B72B9F37A570 /* KeychainStore.swift in Sources */,
 				1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */,
+				BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

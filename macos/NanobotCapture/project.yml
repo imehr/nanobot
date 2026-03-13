@@ -14,8 +14,9 @@ targets:
     platform: macOS
     sources:
       - path: NanobotCapture
-    resources:
-      - path: NanobotCapture/Resources
+        excludes:
+          - Info.plist
+          - Resources
     info:
       path: NanobotCapture/Info.plist
     settings:
@@ -23,7 +24,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: ai.nanobot.capture
         PRODUCT_NAME: NanobotCapture
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     scheme:
       testTargets:
         - NanobotCaptureTests
@@ -32,6 +32,8 @@ targets:
     platform: macOS
     sources:
       - path: NanobotCaptureTests
+        excludes:
+          - Info.plist
     info:
       path: NanobotCaptureTests/Info.plist
     dependencies:
@@ -45,6 +47,8 @@ targets:
     platform: macOS
     sources:
       - path: NanobotCaptureShareExtension
+        excludes:
+          - Info.plist
     info:
       path: NanobotCaptureShareExtension/Info.plist
     settings:
