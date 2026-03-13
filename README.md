@@ -158,6 +158,8 @@ That's it! You have a working AI assistant in 2 minutes.
 
 `nanobot` can now route raw material into a hybrid memory layout instead of relying only on chat history.
 
+For a full end-user walkthrough, including the native macOS app and Share extension, see [docs/hybrid-knowledge-capture.md](docs/hybrid-knowledge-capture.md).
+
 ### Storage layout
 
 - `inbox/` — raw captured items before routing
@@ -180,6 +182,12 @@ Add this to `~/.nanobot/config.json`:
       "enabled": true,
       "bind": "127.0.0.1",
       "port": 18791
+    },
+    "nativeCapture": {
+      "enabled": true,
+      "bind": "127.0.0.1",
+      "port": 18792,
+      "authToken": "choose-a-long-random-token"
     }
   }
 }
@@ -216,6 +224,14 @@ curl -X POST http://127.0.0.1:18791/capture \
 - **Browser UI**
   - Open `http://127.0.0.1:18791/` for a local capture page with note, hint, multi-file upload, and a human-readable result screen
 
+- **Native macOS app**
+  - Build the app in `macos/NanobotCapture/`
+  - The app gives you:
+    - a menu bar capture panel
+    - a normal app window for drag-drop and mixed capture
+    - a native Share extension that appears in supported macOS apps
+  - The app talks to the separate local-native endpoint on `127.0.0.1:18792`
+
 - **Chat channels**
   - Use `/capture ...` in Telegram, WhatsApp, or other chat channels
   - Example: `/capture This invoice is for my bike and the front tire pressure is 35 psi`
@@ -237,10 +253,14 @@ The local web inbox now supports both JSON text capture and browser-based file u
 ### Recommended Mac setup
 
 1. Create a watched folder such as `~/Inbox/nanobot`
-2. Keep `nanobot gateway` running
-3. Use one or more of:
+2. Enable both `localWeb` and `nativeCapture` in config
+3. Keep `nanobot gateway` running
+4. Build and run the app in `macos/NanobotCapture/`
+5. Use one or more of:
    - a Shortcut that runs `nanobot capture clipboard --hint bike`
    - a Quick Action that runs `nanobot capture file "$1" --hint bike`
+   - the native Nanobot menu bar app
+   - the native `Nanobot` Share target from Finder, Safari, Preview, and other supported apps
    - drag-and-drop into the watched folder
    - the browser inbox at `http://127.0.0.1:18791/`
 
