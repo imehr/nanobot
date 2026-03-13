@@ -13,3 +13,7 @@ def test_knowledge_config_defaults() -> None:
     assert config.knowledge.local_web.enabled is True
     assert config.knowledge.local_web.bind == "127.0.0.1"
     assert config.knowledge.local_web.port == 18791
+    assert config.knowledge.native_capture.enabled is False
+    assert config.knowledge.native_capture.bind == "127.0.0.1"
+    assert config.knowledge.native_capture.port == 18792
+    assert config.knowledge.native_capture.auth_token == ""

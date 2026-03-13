@@ -1,0 +1,596 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F732FB2E958C888A7898814 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */; };
+		15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */; };
+		1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */; };
+		1F1235DF1D472CBFF35E0F5D /* NanobotCaptureShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1F575779E977B72B9F37A570 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */; };
+		24307CC7D8E87619275FA349 /* ExtensionPayloadExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0291B292AE94CA6D2B5E928E /* ExtensionPayloadExtractor.swift */; };
+		28B3483233488F3C288AB4BB /* ExtensionPayloadExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0291B292AE94CA6D2B5E928E /* ExtensionPayloadExtractor.swift */; };
+		356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
+		3BC557391C67B2323A6B14DB /* MenuBarCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */; };
+		46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */; };
+		60ECB3F4B47479A04C97609D /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
+		8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F98504255BCC72B0B7129C /* AppState.swift */; };
+		9D7D5DB369889B39DA243FD4 /* ExtensionPayloadExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */; };
+		9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */; };
+		AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */; };
+		BAE687E86E106BE857873ECF /* NativeCaptureClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */; };
+		BC0B22E9E8369083BCB63303 /* FileDropZone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D0B9D956E0558978EA7775 /* FileDropZone.swift */; };
+		BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */; };
+		C78950FC69FAFEA195A066BF /* CaptureWindowViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */; };
+		C7BE4187C9A9E432CEE10EF1 /* MenuBarCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */; };
+		C9F2151A49871802E290CA8D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F608EFEA601348DBBC75F7D1 /* ContentView.swift */; };
+		ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A386DE1DA0DD21048BB5A7B /* ShareView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		762DCBFF14ECE91CE3539364 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7C1D29E4905DFF33F778DF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AEFD5B8D6D45BFA47F486567;
+			remoteInfo = NanobotCaptureShareExtension;
+		};
+		D444CC104D57BCB11824A677 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D7C1D29E4905DFF33F778DF6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A2EDFB0AEE1570CA80B32DC0;
+			remoteInfo = NanobotCapture;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		992EFD88DFC4F2E4E6B106B4 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1F1235DF1D472CBFF35E0F5D /* NanobotCaptureShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0291B292AE94CA6D2B5E928E /* ExtensionPayloadExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPayloadExtractor.swift; sourceTree = "<group>"; };
+		0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowViewModelTests.swift; sourceTree = "<group>"; };
+		26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClientTests.swift; sourceTree = "<group>"; };
+		4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NanobotCaptureApp.swift; sourceTree = "<group>"; };
+		5A386DE1DA0DD21048BB5A7B /* ShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareView.swift; sourceTree = "<group>"; };
+		707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NanobotCaptureShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClient.swift; sourceTree = "<group>"; };
+		80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NanobotCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		84F98504255BCC72B0B7129C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		92D0B9D956E0558978EA7775 /* FileDropZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropZone.swift; sourceTree = "<group>"; };
+		A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePayload.swift; sourceTree = "<group>"; };
+		B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPayloadExtractorTests.swift; sourceTree = "<group>"; };
+		CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCaptureView.swift; sourceTree = "<group>"; };
+		DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
+		DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowView.swift; sourceTree = "<group>"; };
+		EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		F608EFEA601348DBBC75F7D1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F718434B24FD6FD76ACA2B27 /* NanobotCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NanobotCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCaptureTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		13AA3E5FF157538A2AD36B15 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				84F98504255BCC72B0B7129C /* AppState.swift */,
+				F608EFEA601348DBBC75F7D1 /* ContentView.swift */,
+				4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		2BEBFA658128A5B48B0954A4 = {
+			isa = PBXGroup;
+			children = (
+				955F8E75C1F6EAE51EE67638 /* NanobotCapture */,
+				FB449C4D186E35E384278A67 /* NanobotCaptureShareExtension */,
+				C0B8C4880730245CDD8AE041 /* NanobotCaptureTests */,
+				D84D9E5776572C8F05917A8D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4F7DEBE8A48DDDCC5AC93F24 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */,
+				92D0B9D956E0558978EA7775 /* FileDropZone.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		728FC1E557D4ABF50ECB1A0F /* Client */ = {
+			isa = PBXGroup;
+			children = (
+				ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */,
+				A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */,
+				77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */,
+			);
+			path = Client;
+			sourceTree = "<group>";
+		};
+		955F8E75C1F6EAE51EE67638 /* NanobotCapture */ = {
+			isa = PBXGroup;
+			children = (
+				13AA3E5FF157538A2AD36B15 /* App */,
+				728FC1E557D4ABF50ECB1A0F /* Client */,
+				D59646FCA3A70ABA78470BF7 /* MenuBar */,
+				4F7DEBE8A48DDDCC5AC93F24 /* UI */,
+			);
+			path = NanobotCapture;
+			sourceTree = "<group>";
+		};
+		C0B8C4880730245CDD8AE041 /* NanobotCaptureTests */ = {
+			isa = PBXGroup;
+			children = (
+				0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */,
+				B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */,
+				F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */,
+				26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */,
+				DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */,
+			);
+			path = NanobotCaptureTests;
+			sourceTree = "<group>";
+		};
+		D59646FCA3A70ABA78470BF7 /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		D84D9E5776572C8F05917A8D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F718434B24FD6FD76ACA2B27 /* NanobotCapture.app */,
+				707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */,
+				80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FB449C4D186E35E384278A67 /* NanobotCaptureShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				0291B292AE94CA6D2B5E928E /* ExtensionPayloadExtractor.swift */,
+				5A386DE1DA0DD21048BB5A7B /* ShareView.swift */,
+				EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */,
+			);
+			path = NanobotCaptureShareExtension;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		58160B27D191875DE4DF3ED7 /* NanobotCaptureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA21012AEAE7C48970585900 /* Build configuration list for PBXNativeTarget "NanobotCaptureTests" */;
+			buildPhases = (
+				A1A946B58D3E8A9711E49204 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4B6F8C2134AA4395D04ADD89 /* PBXTargetDependency */,
+			);
+			name = NanobotCaptureTests;
+			packageProductDependencies = (
+			);
+			productName = NanobotCaptureTests;
+			productReference = 80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		A2EDFB0AEE1570CA80B32DC0 /* NanobotCapture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C549F51616B38F66348CD63 /* Build configuration list for PBXNativeTarget "NanobotCapture" */;
+			buildPhases = (
+				EF882690D8180CBE2EB77CB1 /* Sources */,
+				992EFD88DFC4F2E4E6B106B4 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8416A064E51CD1ECD0CCE6CF /* PBXTargetDependency */,
+			);
+			name = NanobotCapture;
+			packageProductDependencies = (
+			);
+			productName = NanobotCapture;
+			productReference = F718434B24FD6FD76ACA2B27 /* NanobotCapture.app */;
+			productType = "com.apple.product-type.application";
+		};
+		AEFD5B8D6D45BFA47F486567 /* NanobotCaptureShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B787045A5E303CBD7B6D283B /* Build configuration list for PBXNativeTarget "NanobotCaptureShareExtension" */;
+			buildPhases = (
+				BB65F50D8F8C5DFBC3AA0AEA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NanobotCaptureShareExtension;
+			packageProductDependencies = (
+			);
+			productName = NanobotCaptureShareExtension;
+			productReference = 707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D7C1D29E4905DFF33F778DF6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 79B5FF4C6FEF3B6B143D918B /* Build configuration list for PBXProject "NanobotCapture" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 2BEBFA658128A5B48B0954A4;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D84D9E5776572C8F05917A8D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A2EDFB0AEE1570CA80B32DC0 /* NanobotCapture */,
+				AEFD5B8D6D45BFA47F486567 /* NanobotCaptureShareExtension */,
+				58160B27D191875DE4DF3ED7 /* NanobotCaptureTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A1A946B58D3E8A9711E49204 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C78950FC69FAFEA195A066BF /* CaptureWindowViewModelTests.swift in Sources */,
+				9D7D5DB369889B39DA243FD4 /* ExtensionPayloadExtractorTests.swift in Sources */,
+				3BC557391C67B2323A6B14DB /* MenuBarCaptureTests.swift in Sources */,
+				15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */,
+				9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB65F50D8F8C5DFBC3AA0AEA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60ECB3F4B47479A04C97609D /* CapturePayload.swift in Sources */,
+				28B3483233488F3C288AB4BB /* ExtensionPayloadExtractor.swift in Sources */,
+				0F732FB2E958C888A7898814 /* KeychainStore.swift in Sources */,
+				BAE687E86E106BE857873ECF /* NativeCaptureClient.swift in Sources */,
+				ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */,
+				46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF882690D8180CBE2EB77CB1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */,
+				356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */,
+				AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */,
+				C9F2151A49871802E290CA8D /* ContentView.swift in Sources */,
+				24307CC7D8E87619275FA349 /* ExtensionPayloadExtractor.swift in Sources */,
+				BC0B22E9E8369083BCB63303 /* FileDropZone.swift in Sources */,
+				1F575779E977B72B9F37A570 /* KeychainStore.swift in Sources */,
+				C7BE4187C9A9E432CEE10EF1 /* MenuBarCaptureView.swift in Sources */,
+				1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */,
+				BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4B6F8C2134AA4395D04ADD89 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A2EDFB0AEE1570CA80B32DC0 /* NanobotCapture */;
+			targetProxy = D444CC104D57BCB11824A677 /* PBXContainerItemProxy */;
+		};
+		8416A064E51CD1ECD0CCE6CF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AEFD5B8D6D45BFA47F486567 /* NanobotCaptureShareExtension */;
+			targetProxy = 762DCBFF14ECE91CE3539364 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		220542507B25801E2D9B3AF3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = NanobotCaptureTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture.tests;
+				PRODUCT_NAME = NanobotCaptureTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NanobotCapture.app/Contents/MacOS/NanobotCapture";
+			};
+			name = Release;
+		};
+		24C9E87DF1DAF3252907BA17 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_DEBUG_DYLIB = NO;
+				INFOPLIST_FILE = NanobotCapture/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture;
+				PRODUCT_NAME = NanobotCapture;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		380D195396ED8DE6B8A82478 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		6C1DDC6B61829C98C5777946 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = NanobotCaptureShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture.share;
+				PRODUCT_NAME = NanobotCaptureShareExtension;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AD66AA0AF9654E0CC73FBE2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = NanobotCaptureShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture.share;
+				PRODUCT_NAME = NanobotCaptureShareExtension;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		AE67C1FBFB7D6EE7FBFD150A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = NanobotCaptureTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture.tests;
+				PRODUCT_NAME = NanobotCaptureTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NanobotCapture.app/Contents/MacOS/NanobotCapture";
+			};
+			name = Debug;
+		};
+		BAC9124DBA6DF11556CB5111 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_DEBUG_DYLIB = NO;
+				INFOPLIST_FILE = NanobotCapture/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ai.nanobot.capture;
+				PRODUCT_NAME = NanobotCapture;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		CAEEDD7B383DAE0093E4C1E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5C549F51616B38F66348CD63 /* Build configuration list for PBXNativeTarget "NanobotCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24C9E87DF1DAF3252907BA17 /* Debug */,
+				BAC9124DBA6DF11556CB5111 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		79B5FF4C6FEF3B6B143D918B /* Build configuration list for PBXProject "NanobotCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				380D195396ED8DE6B8A82478 /* Debug */,
+				CAEEDD7B383DAE0093E4C1E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AA21012AEAE7C48970585900 /* Build configuration list for PBXNativeTarget "NanobotCaptureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE67C1FBFB7D6EE7FBFD150A /* Debug */,
+				220542507B25801E2D9B3AF3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B787045A5E303CBD7B6D283B /* Build configuration list for PBXNativeTarget "NanobotCaptureShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C1DDC6B61829C98C5777946 /* Debug */,
+				AD66AA0AF9654E0CC73FBE2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D7C1D29E4905DFF33F778DF6 /* Project object */;
+}

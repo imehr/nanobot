@@ -261,6 +261,15 @@ class LocalWebInboxConfig(Base):
     auth_token: str = ""
 
 
+class NativeCaptureConfig(Base):
+    """Loopback-only native capture endpoint configuration."""
+
+    enabled: bool = False
+    bind: str = "127.0.0.1"
+    port: int = 18792
+    auth_token: str = ""
+
+
 class KnowledgeConfig(Base):
     """Hybrid knowledge-ingestion configuration."""
 
@@ -272,6 +281,7 @@ class KnowledgeConfig(Base):
     review_dir: str = "inbox/review"
     watched_paths: list[str] = Field(default_factory=list)
     local_web: LocalWebInboxConfig = Field(default_factory=LocalWebInboxConfig)
+    native_capture: NativeCaptureConfig = Field(default_factory=NativeCaptureConfig)
 
 
 class MCPServerConfig(Base):
