@@ -17,13 +17,18 @@ targets:
         excludes:
           - Info.plist
           - Resources
+      - path: NanobotCaptureShareExtension/ExtensionPayloadExtractor.swift
     info:
       path: NanobotCapture/Info.plist
+    dependencies:
+      - target: NanobotCaptureShareExtension
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ai.nanobot.capture
         PRODUCT_NAME: NanobotCapture
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        ENABLE_DEBUG_DYLIB: NO
     scheme:
       testTargets:
         - NanobotCaptureTests
@@ -46,6 +51,7 @@ targets:
     type: app-extension
     platform: macOS
     sources:
+      - path: NanobotCapture/Client
       - path: NanobotCaptureShareExtension
         excludes:
           - Info.plist
