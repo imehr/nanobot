@@ -27,4 +27,14 @@ final class SmokeTests: XCTestCase {
             "Saved to Mehr: /Mehr/Personal/motorbike/bmw-c400gt.md"
         )
     }
+
+    func testCaptureWindowUsesPinnedBottomActionBarLayout() {
+        XCTAssertEqual(CaptureWindowLayout.actionBarMode, .fixedBottom)
+        XCTAssertTrue(CaptureWindowLayout.usesPersistentHeader)
+        XCTAssertTrue(CaptureWindowLayout.usesPersistentFooter)
+        XCTAssertGreaterThanOrEqual(CaptureWindowLayout.editorMinHeight, 160)
+        XCTAssertGreaterThan(CaptureWindowLayout.wideContentBreakpoint, 900)
+        XCTAssertEqual(CaptureWindowLayout.mode(for: 1280), .wide)
+        XCTAssertEqual(CaptureWindowLayout.mode(for: 820), .compact)
+    }
 }

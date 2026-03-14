@@ -21,7 +21,31 @@ Available capture paths:
 - native macOS menu bar capture
 - native macOS Share extension
 
-## One-Time Setup
+## This Mac Is Already Configured
+
+On this Mac, the setup has already been applied for the user account `mehranmozaffari`.
+
+Installed local pieces:
+
+- watched folder: `~/Drop to Nanobot`
+- browser inbox: `http://127.0.0.1:18791/`
+- native app endpoint: `http://127.0.0.1:18792/`
+- native app bundle: `~/Applications/NanobotCapture.app`
+- clipboard launcher app: `~/Applications/Send Clipboard to Nanobot.app`
+- Finder Quick Action: `~/Library/Services/Send to Nanobot.workflow`
+- text Service: `~/Library/Services/Send Text to Nanobot.workflow`
+
+Config already applied:
+
+- `~/.nanobot/config.json` has `knowledge.enabled = true`
+- `knowledge.watchedPaths` includes `~/Drop to Nanobot`
+- `knowledge.nativeCapture.enabled = true`
+- `knowledge.nativeCapture.bind = 127.0.0.1`
+- `knowledge.nativeCapture.port = 18792`
+
+If you are using this exact Mac, skip to `How To Use Each Mac Capture Flow`.
+
+## One-Time Setup On Another Mac
 
 ### 1. Configure `~/.nanobot/config.json`
 
@@ -32,7 +56,7 @@ Add or merge this:
   "knowledge": {
     "enabled": true,
     "watchedPaths": [
-      "~/Inbox/nanobot"
+      "~/Drop to Nanobot"
     ],
     "localWeb": {
       "enabled": true,
@@ -60,7 +84,7 @@ Notes:
 ### 2. Create the watched folder
 
 ```bash
-mkdir -p ~/Inbox/nanobot
+mkdir -p ~/Drop\\ to\\ Nanobot
 ```
 
 ### 3. Start the gateway
@@ -73,7 +97,7 @@ If configured correctly, startup output will include:
 
 - `Local web inbox: http://127.0.0.1:18791/capture`
 - `Native capture endpoint: http://127.0.0.1:18792/capture`
-- `Watched folders: ~/Inbox/nanobot`
+- `Watched folders: ~/Drop to Nanobot`
 
 ## Native macOS App
 
@@ -117,6 +141,7 @@ Use it for quick capture:
 - paste or type a note
 - add an optional hint like `bike`
 - pull in clipboard text
+- paste a screenshot or image from the clipboard with `Command-V`
 - submit immediately
 - open the full window when you need drag-drop or a larger form
 
@@ -125,6 +150,7 @@ Good use cases:
 - a copied phone number
 - a quick fact like tire pressure
 - a short note about a vendor or recurring service centre
+- a screenshot you copied with the macOS screenshot shortcut
 
 ### Full App Window
 
@@ -145,9 +171,17 @@ Good use cases:
 - screenshots
 - a service booking confirmation plus a note explaining context
 
+Clipboard screenshot flow:
+
+1. Copy a screenshot to the clipboard with `Shift-Command-Control-4` for a region or `Shift-Command-Control-3` for the full screen.
+2. Open `NanobotCapture.app`.
+3. Press `Command-V` in the main window, or click `Paste Clipboard`.
+4. Confirm the screenshot appears in the Attachments panel as a thumbnail card and the status changes to `Screenshot added`.
+5. Click `Capture to Nanobot`.
+
 ### Native Share Extension
 
-Once the app has been built and run, `Nanobot` should appear in the macOS Share menu for supported apps.
+`Nanobot` is registered as a macOS Share service on this machine and should appear in the Share menu for supported apps.
 
 Typical flow:
 
@@ -165,8 +199,64 @@ The Share extension accepts:
 
 If `Nanobot` does not appear at first:
 
-- try running the app once from Xcode again
+- quit and reopen `NanobotCapture.app`
 - in a Share panel, choose `More...` and enable `Nanobot` if macOS shows the extension as disabled
+
+### Finder Quick Action
+
+There is also a native Finder Quick Action installed on this Mac:
+
+- `Send to Nanobot`
+
+Use it like this:
+
+1. Select one or more files in Finder.
+2. Right-click.
+3. Choose `Quick Actions`, then `Send to Nanobot`.
+
+This is best for:
+
+- screenshots
+- PDFs
+- invoices
+- downloaded receipts
+- images you want routed into knowledge without opening the browser or app window
+
+This Quick Action uses the same local `nanobot capture file ...` path as the other native tools.
+
+### Native Text Service
+
+There is also a text Service installed on this Mac:
+
+- `Send Text to Nanobot`
+
+Use it like this:
+
+1. Select text in a Mac app that exposes the Services menu.
+2. Right-click or open the app menu.
+3. Choose `Services`, then `Send Text to Nanobot`.
+
+This is the lightest native path for:
+
+- copied booking details
+- addresses
+- phone numbers
+- instructions from email or chat
+- snippets from a web page
+
+### Clipboard Launcher App
+
+There is a small local launcher app installed on this Mac:
+
+- `~/Applications/Send Clipboard to Nanobot.app`
+
+Use it like this:
+
+1. Copy some text.
+2. Launch `Send Clipboard to Nanobot` from Spotlight, Launchpad, or Finder.
+3. The app sends the current clipboard text directly into Nanobot.
+
+This is the simplest native clipboard path when you do not want to open Terminal or the full Nanobot window.
 
 ## Other Capture Methods
 
@@ -182,7 +272,7 @@ nanobot capture file ~/Downloads/service-invoice.pdf --hint bike --note "10,000 
 
 Drop files into:
 
-- `~/Inbox/nanobot`
+- `~/Drop to Nanobot`
 
 The gateway watcher picks them up and routes them automatically.
 
@@ -278,8 +368,17 @@ curl http://127.0.0.1:18792/health
 
 Check:
 
-- the app bundle was built and run successfully
+- the installed app at `~/Applications/NanobotCapture.app` is the latest build
+- quit and reopen `NanobotCapture.app` once after reinstalling
 - the share panel `More...` section has the extension enabled
+
+If you want to confirm registration from Terminal:
+
+```bash
+pluginkit -m -p com.apple.share-services | rg nanobot
+```
+
+You should see `ai.nanobot.capture.share(1.0)`.
 
 ### The browser inbox works but the app does not
 

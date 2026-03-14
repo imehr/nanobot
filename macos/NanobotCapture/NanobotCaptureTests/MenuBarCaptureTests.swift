@@ -3,6 +3,23 @@ import XCTest
 
 @MainActor
 final class MenuBarCaptureTests: XCTestCase {
+    func testOpenWindowCopiesDraftAndInvokesWindowHandler() {
+        let appState = AppState()
+        var didRequestOpen = false
+
+        appState.registerOpenCaptureWindowHandler {
+            didRequestOpen = true
+        }
+        appState.menuBarCapture.note = "Book the regular bike service"
+        appState.menuBarCapture.hint = "bike"
+
+        appState.openCaptureWindowFromMenuBar()
+
+        XCTAssertTrue(didRequestOpen)
+        XCTAssertEqual(appState.captureWindow.note, "Book the regular bike service")
+        XCTAssertEqual(appState.captureWindow.hint, "bike")
+    }
+
     func testPasteTextFlowStoresNote() {
         let model = MenuBarCaptureViewModel()
 
@@ -55,5 +72,55 @@ final class MenuBarCaptureTests: XCTestCase {
         )
 
         XCTAssertEqual(model.resultMessage, "Classify this as personal or business?")
+    }
+
+    func testEmbeddedShareExtensionBundleDeclaresShareServiceManifest() throws {
+        let pluginsURL = try XCTUnwrap(Bundle.main.builtInPlugInsURL)
+        let extensionURL = pluginsURL.appendingPathComponent("NanobotCaptureShareExtension.appex")
+        let extensionBundle = try XCTUnwrap(Bundle(url: extensionURL))
+        let extensionManifest = try XCTUnwrap(extensionBundle.infoDictionary?["NSExtension"] as? [String: Any])
+
+        XCTAssertEqual(extensionManifest["NSExtensionPointIdentifier"] as? String, "com.apple.share-services")
+        XCTAssertEqual(
+            extensionManifest["NSExtensionPrincipalClass"] as? String,
+            "NanobotCaptureShareExtension.ShareViewController"
+        )
+
+        let attributes = try XCTUnwrap(extensionManifest["NSExtensionAttributes"] as? [String: Any])
+        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? [String: Any])
+        XCTAssertEqual(rule["NSExtensionActivationSupportsText"] as? Bool, true)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsImageWithMaxCount"] as? Int, 10)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsFileWithMaxCount"] as? Int, 10)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int, 10)
+    }
+
+    func testEmbeddedAppAndShareExtensionContainSandboxEntitlements() throws {
+        let appEntitlements = try entitlementsXML(for: Bundle.main.bundleURL)
+        XCTAssertTrue(appEntitlements.contains("com.apple.security.app-sandbox"))
+        XCTAssertTrue(appEntitlements.contains("com.apple.security.network.client"))
+        XCTAssertTrue(appEntitlements.contains("com.apple.security.files.user-selected.read-write"))
+
+        let pluginsURL = try XCTUnwrap(Bundle.main.builtInPlugInsURL)
+        let extensionURL = pluginsURL.appendingPathComponent("NanobotCaptureShareExtension.appex")
+        let extensionEntitlements = try entitlementsXML(for: extensionURL)
+        XCTAssertTrue(extensionEntitlements.contains("com.apple.security.app-sandbox"))
+        XCTAssertTrue(extensionEntitlements.contains("com.apple.security.network.client"))
+        XCTAssertTrue(extensionEntitlements.contains("com.apple.security.files.user-selected.read-write"))
+    }
+
+    private func entitlementsXML(for bundleURL: URL) throws -> String {
+        let process = Process()
+        let output = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
+        process.arguments = ["-d", "--entitlements", ":-", bundleURL.path]
+        process.standardOutput = output
+        process.standardError = output
+        try process.run()
+        process.waitUntilExit()
+
+        let data = output.fileHandleForReading.readDataToEndOfFile()
+        let text = String(decoding: data, as: UTF8.self)
+        XCTAssertEqual(process.terminationStatus, 0, "codesign failed for \(bundleURL.path): \(text)")
+        return text
     }
 }

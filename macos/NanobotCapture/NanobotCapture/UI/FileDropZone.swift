@@ -10,22 +10,24 @@ struct FileDropZone: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 18, style: .continuous)
             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
-            .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary.opacity(0.4))
+            .foregroundStyle(isTargeted ? Color.accentColor : Color.secondary.opacity(0.35))
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.secondary.opacity(0.08))
+                    .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.secondary.opacity(0.06))
             )
-            .frame(minHeight: 140)
+            .frame(minHeight: files.isEmpty ? 180 : 120)
             .overlay {
                 VStack(spacing: 10) {
                     Image(systemName: "square.and.arrow.down")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.system(size: 30, weight: .semibold))
                     Text(files.isEmpty ? "Drop files here" : "Drop more files here")
                         .font(.headline)
-                    Text("Receipts, screenshots, PDFs, and images are copied into the inbox before any routing happens.")
+                    Text(files.isEmpty
+                         ? "Screenshots, receipts, PDFs, and images are copied into the inbox before any routing happens."
+                         : "New files are added to the attachment list immediately.")
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
-                        .frame(maxWidth: 360)
+                        .frame(maxWidth: 420)
                 }
                 .padding(20)
             }

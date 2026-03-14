@@ -178,7 +178,7 @@ Add this to `~/.nanobot/config.json`:
 {
   "knowledge": {
     "watchedPaths": [
-      "~/Inbox/nanobot"
+      "~/Drop to Nanobot"
     ],
     "localWeb": {
       "enabled": true,
@@ -213,7 +213,7 @@ nanobot capture clipboard --hint bike
 ```
 
 - **Watched folder**
-  - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Inbox/nanobot`
+  - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Drop to Nanobot`
 - **Local web inbox**
   - Send notes or upload a file from Mac shortcuts, browser tools, or other machines on your LAN
 
@@ -254,7 +254,7 @@ The local web inbox now supports both JSON text capture and browser-based file u
 
 ### Recommended Mac setup
 
-1. Create a watched folder such as `~/Inbox/nanobot`
+1. Create a watched folder such as `~/Drop to Nanobot`
 2. Enable both `localWeb` and `nativeCapture` in config
 3. Keep `nanobot gateway` running
 4. Build and run the app in `macos/NanobotCapture/`

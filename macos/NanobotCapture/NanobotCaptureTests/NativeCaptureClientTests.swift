@@ -3,6 +3,30 @@ import XCTest
 @testable import NanobotCapture
 
 final class NativeCaptureClientTests: XCTestCase {
+    func testSubmitDecodesSnakeCaseNativeCaptureResponse() async throws {
+        let payload = Data(
+            #"{"inbox_item_path":"/tmp/inbox/item.md","entities":["personal/bike"],"actions":["saved original","applied decision"],"follow_up":null}"#
+                .utf8
+        )
+        let client = NativeCaptureClient(
+            baseURL: URL(string: "http://127.0.0.1:18792")!,
+            session: StubHTTPSession(responseData: payload),
+            tokenStore: StubTokenStore(token: "secret-token")
+        )
+
+        let response = try await client.submit(
+            .text(
+                contentText: "Front tire pressure is 35 psi",
+                userHint: "bike"
+            )
+        )
+
+        XCTAssertEqual(response.inboxItemPath, "/tmp/inbox/item.md")
+        XCTAssertEqual(response.entities, ["personal/bike"])
+        XCTAssertEqual(response.actions, ["saved original", "applied decision"])
+        XCTAssertNil(response.followUp)
+    }
+
     func testTextPayloadBuildsJSONRequest() throws {
         let client = NativeCaptureClient(
             baseURL: URL(string: "http://127.0.0.1:18792")!,

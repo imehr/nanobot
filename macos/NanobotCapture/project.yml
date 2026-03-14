@@ -29,6 +29,8 @@ targets:
         PRODUCT_NAME: NanobotCapture
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         ENABLE_DEBUG_DYLIB: NO
+        ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ENTITLEMENTS: NanobotCapture/NanobotCapture.entitlements
     scheme:
       testTargets:
         - NanobotCaptureTests
@@ -61,3 +63,5 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ai.nanobot.capture.share
         PRODUCT_NAME: NanobotCaptureShareExtension
+        ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ENTITLEMENTS: NanobotCaptureShareExtension/NanobotCaptureShareExtension.entitlements

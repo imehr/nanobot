@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F732FB2E958C888A7898814 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */; };
+		15D04CD189DEDD48246B896E /* CaptureAttachmentCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD2EC4415A0A822C04CC27D /* CaptureAttachmentCard.swift */; };
 		15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */; };
 		1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F585F5AE532D5449A17049D /* NanobotCaptureApp.swift */; };
 		1F1235DF1D472CBFF35E0F5D /* NanobotCaptureShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 707241A9E003323F0E1A734D /* NanobotCaptureShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -17,7 +18,12 @@
 		356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
 		3BC557391C67B2323A6B14DB /* MenuBarCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */; };
 		46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */; };
+		546F8A20F0ABBCF6382A800C /* CaptureAttachmentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D9325EBD589D9E5203620F /* CaptureAttachmentPanel.swift */; };
+		55A08CAAFF378949F2A790D9 /* CaptureContextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A49DA4B128AF1466F46026 /* CaptureContextEditor.swift */; };
 		60ECB3F4B47479A04C97609D /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
+		683EEDE34CB990656D3F9792 /* ShareExtensionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */; };
+		71BFFF483F0D6639558B0030 /* ShareExtensionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */; };
+		8274753669259F3E74EDE140 /* CaptureAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DC6AE52C9D14350B204BB5 /* CaptureAttachment.swift */; };
 		8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F98504255BCC72B0B7129C /* AppState.swift */; };
 		9D7D5DB369889B39DA243FD4 /* ExtensionPayloadExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */; };
 		9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */; };
@@ -28,6 +34,7 @@
 		C78950FC69FAFEA195A066BF /* CaptureWindowViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0878EF6471A8150427F87F35 /* CaptureWindowViewModelTests.swift */; };
 		C7BE4187C9A9E432CEE10EF1 /* MenuBarCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */; };
 		C9F2151A49871802E290CA8D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F608EFEA601348DBBC75F7D1 /* ContentView.swift */; };
+		EAC86A5B519AE62C0EF2970F /* ShareExtensionModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9849E4167D0CBC9CE51FECC2 /* ShareExtensionModelTests.swift */; };
 		ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A386DE1DA0DD21048BB5A7B /* ShareView.swift */; };
 /* End PBXBuildFile section */
 
@@ -72,13 +79,21 @@
 		77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeCaptureClient.swift; sourceTree = "<group>"; };
 		80B7D73FBA2632CC7EF32115 /* NanobotCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NanobotCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		84F98504255BCC72B0B7129C /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		85D9325EBD589D9E5203620F /* CaptureAttachmentPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureAttachmentPanel.swift; sourceTree = "<group>"; };
+		88DC6AE52C9D14350B204BB5 /* CaptureAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureAttachment.swift; sourceTree = "<group>"; };
 		92D0B9D956E0558978EA7775 /* FileDropZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDropZone.swift; sourceTree = "<group>"; };
+		93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionModel.swift; sourceTree = "<group>"; };
+		9849E4167D0CBC9CE51FECC2 /* ShareExtensionModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionModelTests.swift; sourceTree = "<group>"; };
+		A1A49DA4B128AF1466F46026 /* CaptureContextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureContextEditor.swift; sourceTree = "<group>"; };
 		A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		ABD2EC4415A0A822C04CC27D /* CaptureAttachmentCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureAttachmentCard.swift; sourceTree = "<group>"; };
 		ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePayload.swift; sourceTree = "<group>"; };
 		B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPayloadExtractorTests.swift; sourceTree = "<group>"; };
+		BF3717DE80198043E355664D /* NanobotCaptureShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NanobotCaptureShareExtension.entitlements; sourceTree = "<group>"; };
 		CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCaptureView.swift; sourceTree = "<group>"; };
 		DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowView.swift; sourceTree = "<group>"; };
+		E06766F005C5B97DE85453CA /* NanobotCapture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NanobotCapture.entitlements; sourceTree = "<group>"; };
 		EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		F608EFEA601348DBBC75F7D1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F718434B24FD6FD76ACA2B27 /* NanobotCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NanobotCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +124,10 @@
 		4F7DEBE8A48DDDCC5AC93F24 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				88DC6AE52C9D14350B204BB5 /* CaptureAttachment.swift */,
+				ABD2EC4415A0A822C04CC27D /* CaptureAttachmentCard.swift */,
+				85D9325EBD589D9E5203620F /* CaptureAttachmentPanel.swift */,
+				A1A49DA4B128AF1466F46026 /* CaptureContextEditor.swift */,
 				DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */,
 				92D0B9D956E0558978EA7775 /* FileDropZone.swift */,
 			);
@@ -121,6 +140,7 @@
 				ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */,
 				A9CFC28BCBE24C64F3B013BC /* KeychainStore.swift */,
 				77942775571A2EFED44EFC81 /* NativeCaptureClient.swift */,
+				93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */,
 			);
 			path = Client;
 			sourceTree = "<group>";
@@ -128,6 +148,7 @@
 		955F8E75C1F6EAE51EE67638 /* NanobotCapture */ = {
 			isa = PBXGroup;
 			children = (
+				E06766F005C5B97DE85453CA /* NanobotCapture.entitlements */,
 				13AA3E5FF157538A2AD36B15 /* App */,
 				728FC1E557D4ABF50ECB1A0F /* Client */,
 				D59646FCA3A70ABA78470BF7 /* MenuBar */,
@@ -143,6 +164,7 @@
 				B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */,
 				F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */,
 				26949B79F26DF2B7ACDB2035 /* NativeCaptureClientTests.swift */,
+				9849E4167D0CBC9CE51FECC2 /* ShareExtensionModelTests.swift */,
 				DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */,
 			);
 			path = NanobotCaptureTests;
@@ -170,6 +192,7 @@
 			isa = PBXGroup;
 			children = (
 				0291B292AE94CA6D2B5E928E /* ExtensionPayloadExtractor.swift */,
+				BF3717DE80198043E355664D /* NanobotCaptureShareExtension.entitlements */,
 				5A386DE1DA0DD21048BB5A7B /* ShareView.swift */,
 				EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */,
 			);
@@ -274,6 +297,7 @@
 				9D7D5DB369889B39DA243FD4 /* ExtensionPayloadExtractorTests.swift in Sources */,
 				3BC557391C67B2323A6B14DB /* MenuBarCaptureTests.swift in Sources */,
 				15EBAE0E70478E122D5834EC /* NativeCaptureClientTests.swift in Sources */,
+				EAC86A5B519AE62C0EF2970F /* ShareExtensionModelTests.swift in Sources */,
 				9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -286,6 +310,7 @@
 				28B3483233488F3C288AB4BB /* ExtensionPayloadExtractor.swift in Sources */,
 				0F732FB2E958C888A7898814 /* KeychainStore.swift in Sources */,
 				BAE687E86E106BE857873ECF /* NativeCaptureClient.swift in Sources */,
+				683EEDE34CB990656D3F9792 /* ShareExtensionModel.swift in Sources */,
 				ECEFC5F02E5F6C9F9E19A643 /* ShareView.swift in Sources */,
 				46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */,
 			);
@@ -296,6 +321,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */,
+				8274753669259F3E74EDE140 /* CaptureAttachment.swift in Sources */,
+				15D04CD189DEDD48246B896E /* CaptureAttachmentCard.swift in Sources */,
+				546F8A20F0ABBCF6382A800C /* CaptureAttachmentPanel.swift in Sources */,
+				55A08CAAFF378949F2A790D9 /* CaptureContextEditor.swift in Sources */,
 				356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */,
 				AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */,
 				C9F2151A49871802E290CA8D /* ContentView.swift in Sources */,
@@ -305,6 +334,7 @@
 				C7BE4187C9A9E432CEE10EF1 /* MenuBarCaptureView.swift in Sources */,
 				1AC34A493B7CFB4AE90D2A9A /* NanobotCaptureApp.swift in Sources */,
 				BEDDF7D6E3D7B613B15F7983 /* NativeCaptureClient.swift in Sources */,
+				71BFFF483F0D6639558B0030 /* ShareExtensionModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,7 +376,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NanobotCapture/NanobotCapture.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = NanobotCapture/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
@@ -428,7 +460,9 @@
 		6C1DDC6B61829C98C5777946 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NanobotCaptureShareExtension/NanobotCaptureShareExtension.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
 				INFOPLIST_FILE = NanobotCaptureShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -444,7 +478,9 @@
 		AD66AA0AF9654E0CC73FBE2B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NanobotCaptureShareExtension/NanobotCaptureShareExtension.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
 				INFOPLIST_FILE = NanobotCaptureShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -479,7 +515,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = NanobotCapture/NanobotCapture.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = NanobotCapture/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";

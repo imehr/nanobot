@@ -7,6 +7,7 @@ final class MenuBarCaptureViewModel: ObservableObject {
     @Published var hint: String = ""
     @Published var resultMessage: String = ""
     @Published var isSubmitting: Bool = false
+    @Published var lastCapturedItemURL: URL?
 
     var canSubmit: Bool {
         !isSubmitting && !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -31,11 +32,18 @@ final class MenuBarCaptureViewModel: ObservableObject {
     }
 
     func applyQueued(_ response: CaptureResponse) {
+        lastCapturedItemURL = nil
         resultMessage = "Queued \(response.captureId)"
     }
 
     func applyStatus(_ response: CaptureStatusResponse) {
+        lastCapturedItemURL = AppState.resultURL(from: response)
         resultMessage = AppState.describe(status: response)
+    }
+
+    func applyError(_ error: Error) {
+        lastCapturedItemURL = nil
+        resultMessage = "Capture failed: \(error.localizedDescription)"
     }
 }
 
@@ -43,23 +51,31 @@ final class MenuBarCaptureViewModel: ObservableObject {
 final class CaptureWindowViewModel: ObservableObject {
     @Published var note: String = ""
     @Published var hint: String = ""
-    @Published var selectedFiles: [URL] = []
+    @Published var attachments: [CaptureAttachment] = []
     @Published var resultMessage: String = ""
     @Published var isSubmitting: Bool = false
+    @Published var lastCapturedItemURL: URL?
 
     var canSubmit: Bool {
         guard !isSubmitting else {
             return false
         }
-        return !trimmedNote.isEmpty || !selectedFiles.isEmpty
+        return !trimmedNote.isEmpty || !attachments.isEmpty
+    }
+
+    var selectedFiles: [URL] {
+        attachments.map(\.fileURL)
     }
 
     func setSelectedFiles(_ urls: [URL]) {
-        var deduplicated: [URL] = []
-        for url in urls where !deduplicated.contains(url) {
-            deduplicated.append(url)
+        var deduplicated: [CaptureAttachment] = []
+        for url in urls {
+            let attachment = CaptureAttachment(fileURL: url)
+            if !deduplicated.contains(where: { $0.fileURL == attachment.fileURL }) {
+                deduplicated.append(attachment)
+            }
         }
-        selectedFiles = deduplicated
+        attachments = deduplicated
     }
 
     func addSelectedFiles(_ urls: [URL]) {
@@ -67,7 +83,21 @@ final class CaptureWindowViewModel: ObservableObject {
     }
 
     func clearFiles() {
-        selectedFiles = []
+        attachments = []
+    }
+
+    func removeAttachment(id: UUID) {
+        attachments.removeAll { $0.id == id }
+    }
+
+    func applyExtractedPayload(_ payload: ExtractedExtensionPayload) {
+        if let contentText = payload.contentText,
+           !contentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            note = contentText
+        }
+        if let fileURL = payload.fileURL {
+            addSelectedFiles([fileURL])
+        }
     }
 
     func payloads() -> [CapturePayload] {
@@ -88,15 +118,18 @@ final class CaptureWindowViewModel: ObservableObject {
     }
 
     func applyQueued(_ responses: [CaptureResponse]) {
+        lastCapturedItemURL = nil
         let ids = responses.map(\.captureId).joined(separator: ", ")
         resultMessage = "Queued \(responses.count) capture(s): \(ids)"
     }
 
     func applyStatus(_ response: CaptureStatusResponse) {
+        lastCapturedItemURL = AppState.resultURL(from: response)
         resultMessage = AppState.describe(status: response)
     }
 
     func applyError(_ error: Error) {
+        lastCapturedItemURL = nil
         resultMessage = "Capture failed: \(error.localizedDescription)"
     }
 
@@ -119,6 +152,8 @@ final class AppState: ObservableObject {
     @Published var recentCaptures: [CaptureStatusResponse] = []
 
     let client: NativeCaptureClient
+    private var openCaptureWindowHandler: (() -> Void)?
+    private let extractor = ExtensionPayloadExtractor()
 
     init(client: NativeCaptureClient? = nil) {
         self.client = client ?? AppState.buildDefaultClient()
@@ -137,9 +172,13 @@ final class AppState: ObservableObject {
 
     func captureClipboard() {
         let pasteboard = NSPasteboard.general
+        if handleAttachmentPasteboard(pasteboard, shouldOpenWindow: true) {
+            return
+        }
         if let text = pasteboard.string(forType: .string), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             captureWindow.note = text
             lastStatus = "Loaded clipboard text"
+            openCaptureWindowHandler?()
         } else {
             lastStatus = "Clipboard is empty"
         }
@@ -150,6 +189,27 @@ final class AppState: ObservableObject {
             recentCaptures = try await client.fetchRecentCaptures()
         } catch {
             lastStatus = "Could not load recent captures"
+        }
+    }
+
+    func handlePasteProviders(_ providers: [NSItemProvider]) {
+        guard !providers.isEmpty else {
+            return
+        }
+        Task { @MainActor in
+            do {
+                let payload = try await extractor.extract(from: providers)
+                captureWindow.applyExtractedPayload(payload)
+                if let fileURL = payload.fileURL {
+                    lastStatus = CaptureAttachmentKind.infer(from: fileURL) == .image
+                        ? "Screenshot added"
+                        : "Attachment added"
+                } else if payload.contentText != nil {
+                    lastStatus = "Loaded pasted text"
+                }
+            } catch {
+                lastStatus = "Unsupported pasted content"
+            }
         }
     }
 
@@ -183,6 +243,13 @@ final class AppState: ObservableObject {
         }
     }
 
+    func revealCaptureWindowResultInFinder() {
+        guard let url = captureWindow.lastCapturedItemURL else {
+            return
+        }
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
     func loadClipboardIntoMenuBar() {
         let text = NSPasteboard.general.string(forType: .string)
         if menuBarCapture.loadClipboardText(text) {
@@ -209,9 +276,16 @@ final class AppState: ObservableObject {
             lastStatus = Self.describe(status: finalStatus)
             await refreshRecentCaptures()
         } catch {
-            menuBarCapture.resultMessage = "Capture failed: \(error.localizedDescription)"
+            menuBarCapture.applyError(error)
             lastStatus = menuBarCapture.resultMessage
         }
+    }
+
+    func revealMenuBarResultInFinder() {
+        guard let url = menuBarCapture.lastCapturedItemURL else {
+            return
+        }
+        NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 
     func openCaptureWindowFromMenuBar() {
@@ -222,9 +296,31 @@ final class AppState: ObservableObject {
             captureWindow.hint = menuBarCapture.hint
         }
         NSApp.activate(ignoringOtherApps: true)
-        if let window = NSApp.windows.first {
+        if let openCaptureWindowHandler {
+            openCaptureWindowHandler()
+            closeExtraCaptureWindows()
+            return
+        }
+        if let window = NSApp.windows.first(where: { $0.title == "Nanobot Capture" }) ?? NSApp.windows.first {
             window.makeKeyAndOrderFront(nil)
         }
+        closeExtraCaptureWindows()
+    }
+
+    func registerOpenCaptureWindowHandler(_ handler: @escaping () -> Void) {
+        openCaptureWindowHandler = handler
+    }
+
+    func closeExtraCaptureWindows() {
+        let captureWindows = NSApp.windows.filter { $0.title == "Nanobot Capture" }
+        guard captureWindows.count > 1 else {
+            return
+        }
+
+        let primaryWindow = captureWindows.first(where: \.isKeyWindow) ?? captureWindows.first
+        captureWindows
+            .filter { $0 != primaryWindow }
+            .forEach { $0.close() }
     }
 
     func retractCapture(_ captureID: String) async {
@@ -292,6 +388,16 @@ final class AppState: ObservableObject {
         }
     }
 
+    static func resultURL(from status: CaptureStatusResponse) -> URL? {
+        if !status.primaryPath.isEmpty {
+            return URL(fileURLWithPath: status.primaryPath)
+        }
+        if !status.inboxItemPath.isEmpty {
+            return URL(fileURLWithPath: status.inboxItemPath)
+        }
+        return nil
+    }
+
     private static func buildDefaultClient() -> NativeCaptureClient {
         let env = ProcessInfo.processInfo.environment
         let baseURL = URL(string: env["NANOBOT_NATIVE_CAPTURE_BASE_URL"] ?? "http://127.0.0.1:18792")!
@@ -300,5 +406,59 @@ final class AppState: ObservableObject {
             try? client.storeToken(token)
         }
         return client
+    }
+
+    @discardableResult
+    func handleAttachmentPasteboard(_ pasteboard: NSPasteboard, shouldOpenWindow: Bool = false) -> Bool {
+        var urls: [URL] = []
+
+        if let fileURLs = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] {
+            urls.append(contentsOf: fileURLs)
+        }
+
+        if let imageURL = writeClipboardImageToTemporaryFile(from: pasteboard) {
+            urls.append(imageURL)
+        }
+
+        guard !urls.isEmpty else {
+            return false
+        }
+
+        captureWindow.addSelectedFiles(urls)
+        if shouldOpenWindow {
+            openCaptureWindowHandler?()
+            closeExtraCaptureWindows()
+        }
+
+        let imageCount = urls.filter { CaptureAttachmentKind.infer(from: $0) == .image }.count
+        if imageCount == 1 && urls.count == 1 {
+            lastStatus = "Screenshot added"
+        } else {
+            lastStatus = "Added \(urls.count) attachments"
+        }
+        return true
+    }
+
+    private func writeClipboardImageToTemporaryFile(data: Data) throws -> URL {
+        let tempDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("NanobotCaptureClipboard", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        let fileURL = tempDirectory
+            .appendingPathComponent("clipboard-\(UUID().uuidString)")
+            .appendingPathExtension("png")
+        try data.write(to: fileURL)
+        return fileURL
+    }
+
+    private func writeClipboardImageToTemporaryFile(from pasteboard: NSPasteboard) -> URL? {
+        guard
+            let image = NSImage(pasteboard: pasteboard),
+            let tiff = image.tiffRepresentation,
+            let bitmap = NSBitmapImageRep(data: tiff),
+            let png = bitmap.representation(using: .png, properties: [:])
+        else {
+            return nil
+        }
+        return try? writeClipboardImageToTemporaryFile(data: png)
     }
 }

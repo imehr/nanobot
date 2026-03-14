@@ -6,5 +6,8 @@ struct ContentView: View {
     var body: some View {
         CaptureWindowView()
             .environmentObject(appState)
+            .onAppear {
+                appState.closeExtraCaptureWindows()
+            }
     }
 }

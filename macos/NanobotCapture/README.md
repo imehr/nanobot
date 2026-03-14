@@ -47,8 +47,16 @@ nanobot gateway
 The app will:
 
 - show a menu bar capture panel
-- expose a full app window for drag-drop and multi-file capture
+- expose a full responsive app window for drag-drop and multi-file capture
 - install the Share extension for supported macOS Share flows
+- accept pasted images and screenshots in the main window via `Command-V` or `Paste Clipboard`
+- show pasted screenshots as attachment cards with thumbnails before submission
+
+## Verified local flows
+
+- Share service registration: `pluginkit -m -p com.apple.share-services | rg nanobot`
+- Screenshot to clipboard: `Shift-Command-Control-4`, then `Command-V` in the app window and confirm the screenshot appears in the attachment panel
+- Native endpoint health: `curl http://127.0.0.1:18792/health`
 
 ## Tests
 

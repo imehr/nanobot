@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MenuBarCaptureView: View {
+    @Environment(\.openWindow) private var openWindow
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
@@ -38,13 +39,30 @@ struct MenuBarCaptureView: View {
             }
 
             if !appState.menuBarCapture.resultMessage.isEmpty {
-                Text(appState.menuBarCapture.resultMessage)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(appState.menuBarCapture.resultMessage)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let resultURL = appState.menuBarCapture.lastCapturedItemURL {
+                        Link(destination: resultURL) {
+                            Text(resultURL.path)
+                                .font(.system(.caption, design: .monospaced))
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Button("Reveal in Finder") {
+                            appState.revealMenuBarResultInFinder()
+                        }
+                    }
+                }
             }
         }
         .padding(16)
         .frame(width: 320)
+        .onAppear {
+            appState.registerOpenCaptureWindowHandler {
+                openWindow(id: "capture-window")
+            }
+        }
     }
 }
