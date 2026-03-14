@@ -33,6 +33,14 @@ class KnowledgeStore:
         return self.workspace / self.config.entities_dir
 
     @property
+    def canonical_root(self) -> Path:
+        return Path(self.config.canonical_root).expanduser()
+
+    @property
+    def archive_root(self) -> Path:
+        return Path(self.config.archive_root).expanduser()
+
+    @property
     def queue_dir(self) -> Path:
         return self.workspace / self.config.queue_dir
 
@@ -217,23 +225,35 @@ class KnowledgeStore:
         decision: IntakeDecision,
         *,
         artifact_path: Path | None = None,
-    ) -> None:
+        capture_id: str | None = None,
+    ) -> tuple[list[Path], list[Path]]:
         """Persist a routing decision into canonical files and ledgers."""
         self.bootstrap()
+        self.canonical_root.mkdir(parents=True, exist_ok=True)
+        self.archive_root.mkdir(parents=True, exist_ok=True)
+        canonical_paths: list[Path] = []
+        archive_paths: list[Path] = []
+
         for entity in decision.entities:
-            entity_dir = self.entities_dir / entity
+            entity_dir = self.canonical_root / entity
             entity_dir.mkdir(parents=True, exist_ok=True)
             if decision.facts:
-                self._write_profile(entity_dir / "profile.md", decision.facts)
+                profile_path = entity_dir / "profile.md"
+                self._write_profile(profile_path, decision.facts)
+                canonical_paths.append(profile_path)
             if decision.history_entries:
-                self._append_lines(entity_dir / "history.md", decision.history_entries)
+                history_path = entity_dir / "history.md"
+                self._append_lines(history_path, decision.history_entries)
+                canonical_paths.append(history_path)
             if decision.keep_original and artifact_path is not None:
-                artifacts_dir = entity_dir / "artifacts"
-                artifacts_dir.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(artifact_path, artifacts_dir / artifact_path.name)
+                archive_path = self._archive_artifact(entity, artifact_path, capture_id=capture_id)
+                archive_paths.append(archive_path)
 
         for ledger_row in decision.ledger_rows:
-            self._append_ledger_row(ledger_row.ledger, ledger_row.row)
+            ledger_path = self._append_ledger_row(ledger_row.ledger, ledger_row.row)
+            canonical_paths.append(ledger_path)
+
+        return canonical_paths, archive_paths
 
     def _write_profile(self, profile_path: Path, facts: list[FactUpdate]) -> None:
         existing = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
@@ -264,8 +284,10 @@ class KnowledgeStore:
             content += f"\n- {entry}"
         path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
-    def _append_ledger_row(self, ledger: str, row: dict[str, str]) -> None:
-        ledger_path = self.ledgers_dir / f"{ledger}.csv"
+    def _append_ledger_row(self, ledger: str, row: dict[str, str]) -> Path:
+        ledgers_dir = self.canonical_root / "ledgers"
+        ledgers_dir.mkdir(parents=True, exist_ok=True)
+        ledger_path = ledgers_dir / f"{ledger}.csv"
         fieldnames = list(row.keys())
         write_header = not ledger_path.exists()
         with ledger_path.open("a", encoding="utf-8", newline="") as handle:
@@ -273,3 +295,13 @@ class KnowledgeStore:
             if write_header:
                 writer.writeheader()
             writer.writerow(row)
+        return ledger_path
+
+    def _archive_artifact(self, entity: str, artifact_path: Path, *, capture_id: str | None) -> Path:
+        timestamp = datetime.now()
+        slug = entity.replace("/", "-")
+        archive_dir = self.archive_root / str(timestamp.year) / slug / (capture_id or timestamp.strftime("%Y%m%d%H%M%S"))
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        destination = archive_dir / artifact_path.name
+        shutil.copy2(artifact_path, destination)
+        return destination

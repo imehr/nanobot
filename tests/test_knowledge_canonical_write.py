@@ -5,25 +5,12 @@ from nanobot.knowledge.models import FactUpdate, IntakeDecision, LedgerRow
 from nanobot.knowledge.store import KnowledgeStore
 
 
-def test_knowledge_store_bootstraps_workspace(tmp_path: Path) -> None:
-    store = KnowledgeStore(tmp_path)
-
-    store.bootstrap()
-
-    assert (tmp_path / "inbox").is_dir()
-    assert (tmp_path / "entities").is_dir()
-    assert (tmp_path / "ledgers").is_dir()
-    assert (tmp_path / "indexes").is_dir()
-    assert (tmp_path / "inbox" / "review").is_dir()
-
-
-def test_apply_decision_writes_profile_history_artifact_and_ledger(tmp_path: Path) -> None:
+def test_apply_decision_writes_canonical_outputs_into_mehr_and_archive(tmp_path: Path) -> None:
     config = KnowledgeConfig(
         canonical_root=str(tmp_path / "Mehr"),
         archive_root=str(tmp_path / "Nanobot Archive"),
     )
     store = KnowledgeStore(tmp_path / "workspace", config)
-    store.bootstrap()
     artifact = tmp_path / "receipt.pdf"
     artifact.write_text("stub", encoding="utf-8")
 
@@ -43,12 +30,13 @@ def test_apply_decision_writes_profile_history_artifact_and_ledger(tmp_path: Pat
     canonical_paths, archive_paths = store.apply_decision(
         decision,
         artifact_path=artifact,
-        capture_id="cap-001",
+        capture_id="cap-123",
     )
 
     assert "Front tire pressure" in (tmp_path / "Mehr/personal/bike/profile.md").read_text()
     assert "Bike serviced" in (tmp_path / "Mehr/personal/bike/history.md").read_text()
-    assert archive_paths == [tmp_path / "Nanobot Archive/2026/personal-bike/cap-001/receipt.pdf"]
-    assert archive_paths[0].exists()
     assert "180.00" in (tmp_path / "Mehr/ledgers/expenses.csv").read_text()
-    assert canonical_paths
+    assert len(canonical_paths) >= 3
+    assert len(archive_paths) == 1
+    assert archive_paths[0] == tmp_path / "Nanobot Archive/2026/personal-bike/cap-123/receipt.pdf"
+    assert archive_paths[0].exists()

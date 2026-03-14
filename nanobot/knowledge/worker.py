@@ -40,8 +40,17 @@ class KnowledgeWorker:
         try:
             decision = await self.router.route(item, current_memory=self.memory.read_long_term())
             if decision.follow_up is None:
-                self.store.apply_decision(decision, artifact_path=artifact_path)
-                return self.store.transition_job(job.capture_id, status="completed")
+                canonical_paths, archive_paths = self.store.apply_decision(
+                    decision,
+                    artifact_path=artifact_path,
+                    capture_id=job.capture_id,
+                )
+                return self.store.transition_job(
+                    job.capture_id,
+                    status="completed",
+                    canonical_paths=canonical_paths,
+                    archive_paths=archive_paths,
+                )
             return self.store.transition_job(job.capture_id, status="needs_input")
         except Exception as exc:
             return self.store.transition_job(job.capture_id, status="failed", error=str(exc))
