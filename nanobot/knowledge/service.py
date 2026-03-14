@@ -15,8 +15,10 @@ from nanobot.knowledge.store import KnowledgeStore
 
 @dataclass
 class CaptureResult:
-    """Result returned after capturing and routing an item."""
+    """Result returned after staging and queueing an item."""
 
+    capture_id: str
+    status: str
     inbox_item_path: Path
     entities: list[str] = field(default_factory=list)
     actions: list[str] = field(default_factory=list)
@@ -24,7 +26,7 @@ class CaptureResult:
 
 
 class KnowledgeIntakeService:
-    """Store raw capture items, route them, and apply canonical writes."""
+    """Stage raw capture items locally and enqueue them for background processing."""
 
     def __init__(
         self,
@@ -45,17 +47,12 @@ class KnowledgeIntakeService:
 
     async def capture_text(self, content_text: str, *, user_hint: str = "", source: str = "local") -> CaptureResult:
         item = InboxItem(content_text=content_text, user_hint=user_hint, source=source, capture_type="text")
-        inbox_item_path = self.store.save_inbox_item(item)
-        decision = await self.router.route(item, current_memory=self.memory.read_long_term())
-        actions = ["saved original"]
-        if decision.follow_up is None:
-            self.store.apply_decision(decision)
-            actions.append("applied decision")
+        job = self.store.enqueue_capture(item)
         return CaptureResult(
-            inbox_item_path=inbox_item_path,
-            entities=decision.entities,
-            actions=actions,
-            follow_up=decision.follow_up,
+            capture_id=job.capture_id,
+            status=job.status,
+            inbox_item_path=job.inbox_item_path,
+            actions=["saved original", "queued"],
         )
 
     async def capture_file(
@@ -72,16 +69,11 @@ class KnowledgeIntakeService:
             source=source,
             capture_type="file",
         )
-        inbox_item_path = self.store.save_inbox_item(item)
-        self.store.attach_file(inbox_item_path, file_path)
-        decision = await self.router.route(item, current_memory=self.memory.read_long_term())
-        actions = ["saved original"]
-        if decision.follow_up is None:
-            self.store.apply_decision(decision, artifact_path=file_path)
-            actions.append("applied decision")
+        job = self.store.enqueue_capture(item)
+        self.store.attach_file(job.inbox_item_path, file_path)
         return CaptureResult(
-            inbox_item_path=inbox_item_path,
-            entities=decision.entities,
-            actions=actions,
-            follow_up=decision.follow_up,
+            capture_id=job.capture_id,
+            status=job.status,
+            inbox_item_path=job.inbox_item_path,
+            actions=["saved original", "queued"],
         )

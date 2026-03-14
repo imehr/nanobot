@@ -15,17 +15,20 @@ class FakeRouter:
 
 
 @pytest.mark.asyncio
-async def test_capture_service_saves_item_before_follow_up(tmp_path) -> None:
+async def test_capture_service_enqueues_text_capture_without_routing_inline(tmp_path) -> None:
     service = KnowledgeIntakeService.for_testing(tmp_path, router=FakeRouter())
 
     result = await service.capture_text("Bike service receipt", user_hint="bike")
 
-    assert result.follow_up.question == "Is this personal or business?"
+    assert result.status == "queued"
+    assert result.capture_id
     assert result.inbox_item_path.exists()
+    assert (tmp_path / "queue" / f"{result.capture_id}.json").exists()
+    assert not list((tmp_path / "entities").glob("**/*"))
 
 
 @pytest.mark.asyncio
-async def test_capture_service_preserves_uploaded_file(tmp_path) -> None:
+async def test_capture_service_stages_uploaded_file_and_returns_queue_job(tmp_path) -> None:
     class FileRouter:
         async def route(self, item, current_memory):
             return IntakeDecision(
@@ -41,5 +44,8 @@ async def test_capture_service_preserves_uploaded_file(tmp_path) -> None:
 
     result = await service.capture_file(artifact, user_hint="bike")
 
+    assert result.status == "queued"
+    assert result.capture_id
     assert result.inbox_item_path.exists()
     assert (result.inbox_item_path / "attachments" / "invoice.pdf").exists()
+    assert (tmp_path / "queue" / f"{result.capture_id}.json").exists()
