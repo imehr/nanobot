@@ -63,20 +63,7 @@ targets:
       properties:
         NSExtension:
           NSExtensionAttributes:
-            NSExtensionActivationRule: >-
-              SUBQUERY (
-                extensionItems,
-                $item,
-                SUBQUERY (
-                  $item.attachments,
-                  $attachment,
-                  ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text"
-                  OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
-                  OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url"
-                  OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image"
-                  OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.data"
-                ).@count >= 1
-              ).@count >= 1
+            NSExtensionActivationRule: TRUEPREDICATE
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: NanobotCaptureShareExtension.ShareViewController
     settings:
