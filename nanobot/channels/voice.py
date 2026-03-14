@@ -134,13 +134,24 @@ class VoiceCallChannel(BaseChannel):
     """Twilio voice-call channel."""
 
     name = "voice-call"
+    display_name = "Voice Call"
+
+    @classmethod
+    def default_config(cls) -> dict[str, Any]:
+        from nanobot.config.schema import VoiceCallConfig
+
+        return VoiceCallConfig().model_dump(by_alias=True)
 
     def __init__(
         self,
-        config: "VoiceCallConfig",
+        config: "VoiceCallConfig | dict[str, Any]",
         bus: MessageBus,
         direct_chat: DirectChatFn | None = None,
     ):
+        if isinstance(config, dict):
+            from nanobot.config.schema import VoiceCallConfig
+
+            config = VoiceCallConfig.model_validate(config)
         super().__init__(config, bus)
         self.config = config
         self._direct_chat = direct_chat
