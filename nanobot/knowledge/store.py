@@ -41,6 +41,10 @@ class KnowledgeStore:
         return Path(self.config.archive_root).expanduser()
 
     @property
+    def project_memory_root(self) -> Path:
+        return self.canonical_root / self.config.project_memory_dir
+
+    @property
     def queue_dir(self) -> Path:
         return self.workspace / self.config.queue_dir
 
@@ -282,6 +286,62 @@ class KnowledgeStore:
 
         return canonical_paths, archive_paths
 
+    def ensure_project_memory_project(
+        self,
+        project_name: str,
+        *,
+        repo_path: Path | None = None,
+        summary: str = "",
+    ) -> dict[str, Path]:
+        """Bootstrap the canonical Mehr files for a project-memory entry."""
+        project_dir = self.project_memory_root / self._project_slug(project_name)
+        features_dir = project_dir / "features"
+        project_dir.mkdir(parents=True, exist_ok=True)
+        features_dir.mkdir(parents=True, exist_ok=True)
+
+        index_path = project_dir / "index.md"
+        decisions_path = project_dir / "decisions.md"
+        timeline_path = project_dir / "timeline.md"
+        links_path = project_dir / "links.md"
+
+        self._seed_markdown_file(
+            index_path,
+            [f"# {project_name}", "", summary or "Project memory summary."],
+        )
+        self._seed_markdown_file(decisions_path, ["# Decisions"])
+        self._seed_markdown_file(timeline_path, ["# Timeline"])
+        links_lines = ["# Links"]
+        if repo_path is not None:
+            links_lines.extend(["", f"- Repo: {repo_path}"])
+        self._seed_markdown_file(links_path, links_lines)
+
+        return {
+            "project_dir": project_dir,
+            "index": index_path,
+            "decisions": decisions_path,
+            "timeline": timeline_path,
+            "links": links_path,
+        }
+
+    def append_project_memory_decision(self, project_name: str, entry: str) -> Path:
+        """Append a concise decision note to a project's decisions file."""
+        paths = self.ensure_project_memory_project(project_name)
+        self._append_markdown_bullets(paths["decisions"], [entry])
+        return paths["decisions"]
+
+    def append_project_memory_timeline(self, project_name: str, entry: str) -> Path:
+        """Append a milestone or change note to a project's timeline file."""
+        paths = self.ensure_project_memory_project(project_name)
+        self._append_markdown_bullets(paths["timeline"], [entry])
+        return paths["timeline"]
+
+    def write_project_memory_feature(self, project_name: str, *, slug: str, title: str, summary: str) -> Path:
+        """Create or replace a concise feature summary note for a project."""
+        paths = self.ensure_project_memory_project(project_name)
+        feature_path = paths["project_dir"] / "features" / f"{slug}.md"
+        feature_path.write_text(f"# {title}\n\n{summary.rstrip()}\n", encoding="utf-8")
+        return feature_path
+
     def _write_profile(self, profile_path: Path, facts: list[FactUpdate]) -> None:
         existing = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
         lines = existing.rstrip().splitlines() if existing else ["# Profile"]
@@ -344,3 +404,20 @@ class KnowledgeStore:
                 parent.rmdir()
             except OSError:
                 break
+
+    def _seed_markdown_file(self, path: Path, lines: list[str]) -> None:
+        if path.exists():
+            return
+        path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+
+    def _append_markdown_bullets(self, path: Path, entries: list[str]) -> None:
+        prefix = path.read_text(encoding="utf-8").rstrip() if path.exists() else ""
+        if prefix and not prefix.endswith("\n"):
+            prefix += "\n"
+        lines = [prefix] if prefix else []
+        for entry in entries:
+            lines.append(f"- {entry}")
+        path.write_text("\n".join(line for line in lines if line).rstrip() + "\n", encoding="utf-8")
+
+    def _project_slug(self, project_name: str) -> str:
+        return project_name.strip().lower().replace(" ", "-").replace("/", "-")
