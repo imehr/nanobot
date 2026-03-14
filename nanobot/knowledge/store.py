@@ -41,6 +41,10 @@ class KnowledgeStore:
         return self.workspace / self.config.processing_dir
 
     @property
+    def completed_dir(self) -> Path:
+        return self.workspace / self.config.completed_dir
+
+    @property
     def failed_dir(self) -> Path:
         return self.workspace / self.config.failed_dir
 
@@ -70,6 +74,7 @@ class KnowledgeStore:
             self.inbox_dir,
             self.queue_dir,
             self.processing_dir,
+            self.completed_dir,
             self.failed_dir,
             self.retracted_dir,
             self.logs_dir,
@@ -99,11 +104,53 @@ class KnowledgeStore:
 
     def load_job(self, capture_id: str) -> CaptureJob:
         """Load a queued or transitioned job from local runtime state."""
-        for directory in (self.queue_dir, self.processing_dir, self.failed_dir, self.retracted_dir):
+        for directory in (
+            self.queue_dir,
+            self.processing_dir,
+            self.completed_dir,
+            self.failed_dir,
+            self.retracted_dir,
+        ):
             path = directory / f"{capture_id}.json"
             if path.exists():
                 return CaptureJob.model_validate_json(path.read_text(encoding="utf-8"))
         raise FileNotFoundError(f"Unknown capture job: {capture_id}")
+
+    def load_inbox_item(self, item_dir: Path) -> InboxItem:
+        """Load a staged inbox item from disk."""
+        return InboxItem.model_validate_json((item_dir / "item.json").read_text(encoding="utf-8"))
+
+    def list_jobs(self, directory: Path) -> list[CaptureJob]:
+        """Return jobs for a given runtime directory."""
+        if not directory.exists():
+            return []
+        return [
+            CaptureJob.model_validate_json(path.read_text(encoding="utf-8"))
+            for path in sorted(directory.glob("*.json"))
+        ]
+
+    def transition_job(
+        self,
+        capture_id: str,
+        *,
+        status: str,
+        error: str = "",
+        canonical_paths: list[Path] | None = None,
+        archive_paths: list[Path] | None = None,
+    ) -> CaptureJob:
+        """Move a job into its next runtime state directory."""
+        job = self.load_job(capture_id)
+        updated = job.model_copy(
+            update={
+                "status": status,
+                "error": error,
+                "canonical_paths": canonical_paths or job.canonical_paths,
+                "archive_paths": archive_paths or job.archive_paths,
+            }
+        )
+        self._delete_job_files(capture_id)
+        self._write_job(updated, self._directory_for_status(status))
+        return updated
 
     def save_inbox_item(self, item: InboxItem) -> Path:
         """Persist a captured raw item into the inbox and return its directory."""
@@ -142,6 +189,28 @@ class KnowledgeStore:
             encoding="utf-8",
         )
         return path
+
+    def _delete_job_files(self, capture_id: str) -> None:
+        for directory in (
+            self.queue_dir,
+            self.processing_dir,
+            self.completed_dir,
+            self.failed_dir,
+            self.retracted_dir,
+        ):
+            path = directory / f"{capture_id}.json"
+            if path.exists():
+                path.unlink()
+
+    def _directory_for_status(self, status: str) -> Path:
+        return {
+            "queued": self.queue_dir,
+            "processing": self.processing_dir,
+            "completed": self.completed_dir,
+            "failed": self.failed_dir,
+            "retracted": self.retracted_dir,
+            "needs_input": self.completed_dir,
+        }[status]
 
     def apply_decision(
         self,

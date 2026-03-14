@@ -303,6 +303,7 @@ class KnowledgeConfig(Base):
     inbox_dir: str = "inbox"
     queue_dir: str = "queue"
     processing_dir: str = "processing"
+    completed_dir: str = "completed"
     failed_dir: str = "failed"
     retracted_dir: str = "retracted"
     logs_dir: str = "logs"
