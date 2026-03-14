@@ -32,6 +32,7 @@ class CaptureJob(Base):
     queued_at: datetime | None = None
     canonical_paths: list[Path] = Field(default_factory=list)
     archive_paths: list[Path] = Field(default_factory=list)
+    project_memory_paths: list[Path] = Field(default_factory=list)
     follow_up: str = ""
     error: str = ""
 

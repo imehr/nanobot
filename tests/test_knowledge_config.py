@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from nanobot.config.schema import Config
+from nanobot.knowledge.models import CaptureJob
 
 
 def test_knowledge_config_defaults() -> None:
@@ -29,3 +32,15 @@ def test_knowledge_config_defaults_include_queue_and_canonical_targets() -> None
     assert config.knowledge.logs_dir == "logs"
     assert config.knowledge.canonical_root == "~/Library/Mobile Documents/com~apple~CloudDocs/Mehr"
     assert config.knowledge.archive_root == "~/Library/Mobile Documents/com~apple~CloudDocs/Nanobot Archive"
+    assert config.knowledge.project_memory_enabled is True
+    assert config.knowledge.project_memory_dir == "Projects"
+
+
+def test_capture_job_accepts_project_memory_paths() -> None:
+    job = CaptureJob(
+        capture_id="cap-123",
+        inbox_item_path=Path("/tmp/workspace/queue/cap-123"),
+        project_memory_paths=[Path("/tmp/Mehr/Projects/nanobot/decisions.md")],
+    )
+
+    assert job.project_memory_paths == [Path("/tmp/Mehr/Projects/nanobot/decisions.md")]

@@ -313,6 +313,8 @@ class KnowledgeConfig(Base):
     review_dir: str = "inbox/review"
     canonical_root: str = "~/Library/Mobile Documents/com~apple~CloudDocs/Mehr"
     archive_root: str = "~/Library/Mobile Documents/com~apple~CloudDocs/Nanobot Archive"
+    project_memory_enabled: bool = True
+    project_memory_dir: str = "Projects"
     watched_paths: list[str] = Field(default_factory=list)
     local_web: LocalWebInboxConfig = Field(default_factory=LocalWebInboxConfig)
     native_capture: NativeCaptureConfig = Field(default_factory=NativeCaptureConfig)
