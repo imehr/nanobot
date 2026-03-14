@@ -108,6 +108,10 @@ uv tool install nanobot-ai
 pip install nanobot-ai
 ```
 
+## 🔀 Fork Maintenance
+
+This checkout is maintained as the customized `imehr` fork, not as a writable copy of upstream. For upstream integrations, use `scripts/sync_upstream_to_fork.sh`; `upstream` is fetch-only here and should never be pushed to.
+
 ## 🚀 Quick Start
 
 > [!TIP]
