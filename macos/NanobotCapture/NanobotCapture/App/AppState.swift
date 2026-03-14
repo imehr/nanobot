@@ -21,18 +21,21 @@ final class MenuBarCaptureViewModel: ObservableObject {
         return true
     }
 
-    func applyResult(_ response: CaptureResponse) {
-        var lines = ["Saved to \(response.inboxItemPath)"]
-        if let entity = response.entities.first {
-            lines.append(entity)
+    func payload() -> CapturePayload? {
+        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
         }
-        if let action = response.actions.first {
-            lines.append(action)
-        }
-        if let followUp = response.followUp, !followUp.isEmpty {
-            lines.append("Follow-up: \(followUp)")
-        }
-        resultMessage = lines.joined(separator: "\n")
+        let hintValue = hint.trimmingCharacters(in: .whitespacesAndNewlines)
+        return .text(contentText: trimmed, userHint: hintValue.isEmpty ? nil : hintValue)
+    }
+
+    func applyQueued(_ response: CaptureResponse) {
+        resultMessage = "Queued \(response.captureId)"
+    }
+
+    func applyStatus(_ response: CaptureStatusResponse) {
+        resultMessage = AppState.describe(status: response)
     }
 }
 
@@ -67,57 +70,34 @@ final class CaptureWindowViewModel: ObservableObject {
         selectedFiles = []
     }
 
-    func applyResult(_ response: CaptureResponse) {
-        var lines = ["Saved to \(response.inboxItemPath)"]
-        if !response.entities.isEmpty {
-            lines.append("Entities: \(response.entities.joined(separator: ", "))")
+    func payloads() -> [CapturePayload] {
+        let normalizedHint = normalizedHint
+        if selectedFiles.isEmpty {
+            guard !trimmedNote.isEmpty else {
+                return []
+            }
+            return [.text(contentText: trimmedNote, userHint: normalizedHint)]
         }
-        if !response.actions.isEmpty {
-            lines.append("Actions: \(response.actions.joined(separator: ", "))")
+        return selectedFiles.map { fileURL in
+            .file(
+                fileURL: fileURL,
+                contentText: trimmedNote.isEmpty ? nil : trimmedNote,
+                userHint: normalizedHint
+            )
         }
-        if let followUp = response.followUp, !followUp.isEmpty {
-            lines.append("Follow-up: \(followUp)")
-        }
-        resultMessage = lines.joined(separator: "\n")
     }
 
-    func submit(using client: NativeCaptureClient) async {
-        guard canSubmit else {
-            return
-        }
+    func applyQueued(_ responses: [CaptureResponse]) {
+        let ids = responses.map(\.captureId).joined(separator: ", ")
+        resultMessage = "Queued \(responses.count) capture(s): \(ids)"
+    }
 
-        isSubmitting = true
-        defer { isSubmitting = false }
+    func applyStatus(_ response: CaptureStatusResponse) {
+        resultMessage = AppState.describe(status: response)
+    }
 
-        do {
-            if selectedFiles.isEmpty {
-                let response = try await client.submit(
-                    .text(contentText: trimmedNote, userHint: normalizedHint)
-                )
-                applyResult(response)
-                return
-            }
-
-            var lastResponse: CaptureResponse?
-            for fileURL in selectedFiles {
-                lastResponse = try await client.submit(
-                    .file(
-                        fileURL: fileURL,
-                        contentText: trimmedNote.isEmpty ? nil : trimmedNote,
-                        userHint: normalizedHint
-                    )
-                )
-            }
-
-            if let lastResponse {
-                applyResult(lastResponse)
-                if selectedFiles.count > 1 {
-                    resultMessage = "Captured \(selectedFiles.count) files\n\(resultMessage)"
-                }
-            }
-        } catch {
-            resultMessage = "Capture failed: \(error.localizedDescription)"
-        }
+    func applyError(_ error: Error) {
+        resultMessage = "Capture failed: \(error.localizedDescription)"
     }
 
     private var trimmedNote: String {
@@ -136,6 +116,8 @@ final class AppState: ObservableObject {
     @Published var isCaptureWindowVisible: Bool = true
     @Published var captureWindow = CaptureWindowViewModel()
     @Published var menuBarCapture = MenuBarCaptureViewModel()
+    @Published var recentCaptures: [CaptureStatusResponse] = []
+
     let client: NativeCaptureClient
 
     init(client: NativeCaptureClient? = nil) {
@@ -163,9 +145,42 @@ final class AppState: ObservableObject {
         }
     }
 
+    func refreshRecentCaptures() async {
+        do {
+            recentCaptures = try await client.fetchRecentCaptures()
+        } catch {
+            lastStatus = "Could not load recent captures"
+        }
+    }
+
     func submitCapture() async {
-        await captureWindow.submit(using: client)
-        lastStatus = captureWindow.resultMessage.isEmpty ? "Ready" : captureWindow.resultMessage
+        let payloads = captureWindow.payloads()
+        guard !payloads.isEmpty else {
+            return
+        }
+
+        captureWindow.isSubmitting = true
+        lastStatus = "Queuing capture..."
+        defer { captureWindow.isSubmitting = false }
+
+        do {
+            var queuedResponses: [CaptureResponse] = []
+            for payload in payloads {
+                queuedResponses.append(try await client.submit(payload))
+            }
+            captureWindow.applyQueued(queuedResponses)
+            lastStatus = "Processing capture..."
+
+            let terminalStatuses = try await pollForTerminalStatuses(queuedResponses.map(\.captureId))
+            if let latest = terminalStatuses.last {
+                captureWindow.applyStatus(latest)
+                lastStatus = Self.describe(status: latest)
+            }
+            await refreshRecentCaptures()
+        } catch {
+            captureWindow.applyError(error)
+            lastStatus = captureWindow.resultMessage
+        }
     }
 
     func loadClipboardIntoMenuBar() {
@@ -178,23 +193,21 @@ final class AppState: ObservableObject {
     }
 
     func submitMenuBarCapture() async {
-        guard menuBarCapture.canSubmit else {
+        guard let payload = menuBarCapture.payload() else {
             return
         }
 
         menuBarCapture.isSubmitting = true
+        lastStatus = "Queuing capture..."
         defer { menuBarCapture.isSubmitting = false }
 
         do {
-            let hint = menuBarCapture.hint.trimmingCharacters(in: .whitespacesAndNewlines)
-            let response = try await client.submit(
-                .text(
-                    contentText: menuBarCapture.note.trimmingCharacters(in: .whitespacesAndNewlines),
-                    userHint: hint.isEmpty ? nil : hint
-                )
-            )
-            menuBarCapture.applyResult(response)
-            lastStatus = menuBarCapture.resultMessage
+            let queued = try await client.submit(payload)
+            menuBarCapture.applyQueued(queued)
+            let finalStatus = try await pollForTerminalStatus(queued.captureId)
+            menuBarCapture.applyStatus(finalStatus)
+            lastStatus = Self.describe(status: finalStatus)
+            await refreshRecentCaptures()
         } catch {
             menuBarCapture.resultMessage = "Capture failed: \(error.localizedDescription)"
             lastStatus = menuBarCapture.resultMessage
@@ -211,6 +224,71 @@ final class AppState: ObservableObject {
         NSApp.activate(ignoringOtherApps: true)
         if let window = NSApp.windows.first {
             window.makeKeyAndOrderFront(nil)
+        }
+    }
+
+    func retractCapture(_ captureID: String) async {
+        do {
+            let status = try await client.retractCapture(captureID)
+            lastStatus = Self.describe(status: status)
+            await refreshRecentCaptures()
+        } catch {
+            lastStatus = "Could not retract capture"
+        }
+    }
+
+    func retryCapture(_ captureID: String) async {
+        do {
+            _ = try await client.retryCapture(captureID)
+            lastStatus = "Retry queued"
+            await refreshRecentCaptures()
+        } catch {
+            lastStatus = "Could not retry capture"
+        }
+    }
+
+    func reveal(_ path: String) {
+        NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
+    }
+
+    private func pollForTerminalStatuses(_ captureIDs: [String]) async throws -> [CaptureStatusResponse] {
+        var statuses: [CaptureStatusResponse] = []
+        for captureID in captureIDs {
+            statuses.append(try await pollForTerminalStatus(captureID))
+        }
+        return statuses
+    }
+
+    private func pollForTerminalStatus(_ captureID: String) async throws -> CaptureStatusResponse {
+        for _ in 0..<40 {
+            let status = try await client.fetchCapture(captureID)
+            if Self.isTerminal(status.status) {
+                return status
+            }
+            lastStatus = "Processing capture..."
+            try await Task.sleep(for: .milliseconds(350))
+        }
+        return try await client.fetchCapture(captureID)
+    }
+
+    private static func isTerminal(_ status: String) -> Bool {
+        ["completed", "failed", "needs_input", "retracted"].contains(status)
+    }
+
+    static func describe(status: CaptureStatusResponse) -> String {
+        switch status.status {
+        case "completed":
+            return "Saved to Mehr: \(status.primaryPath)"
+        case "needs_input":
+            return status.followUp ?? "Capture needs more input"
+        case "failed":
+            return "Capture failed: \(status.error ?? "Unknown error")"
+        case "retracted":
+            return "Capture retracted"
+        case "processing":
+            return "Processing capture..."
+        default:
+            return "Queued \(status.captureId)"
         }
     }
 

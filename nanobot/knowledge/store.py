@@ -137,6 +137,20 @@ class KnowledgeStore:
             for path in sorted(directory.glob("*.json"))
         ]
 
+    def list_recent_jobs(self, *, limit: int = 20) -> list[CaptureJob]:
+        """Return recent jobs across queue states."""
+        jobs: list[CaptureJob] = []
+        for directory in (
+            self.processing_dir,
+            self.queue_dir,
+            self.completed_dir,
+            self.failed_dir,
+            self.retracted_dir,
+        ):
+            jobs.extend(self.list_jobs(directory))
+        jobs.sort(key=lambda job: job.queued_at or datetime.min, reverse=True)
+        return jobs[:limit]
+
     def transition_job(
         self,
         capture_id: str,
@@ -145,6 +159,7 @@ class KnowledgeStore:
         error: str = "",
         canonical_paths: list[Path] | None = None,
         archive_paths: list[Path] | None = None,
+        follow_up: str = "",
     ) -> CaptureJob:
         """Move a job into its next runtime state directory."""
         job = self.load_job(capture_id)
@@ -154,11 +169,16 @@ class KnowledgeStore:
                 "error": error,
                 "canonical_paths": canonical_paths or job.canonical_paths,
                 "archive_paths": archive_paths or job.archive_paths,
+                "follow_up": follow_up or job.follow_up,
             }
         )
         self._delete_job_files(capture_id)
         self._write_job(updated, self._directory_for_status(status))
         return updated
+
+    def retry_job(self, capture_id: str) -> CaptureJob:
+        """Move a failed or retracted job back to queued state."""
+        return self.transition_job(capture_id, status="queued", error="", follow_up="")
 
     def retract_job(self, capture_id: str) -> CaptureJob:
         """Retract a previously processed job and remove linked outputs."""

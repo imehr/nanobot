@@ -41,21 +41,53 @@ final class CaptureWindowViewModelTests: XCTestCase {
         XCTAssertTrue(model.canSubmit)
     }
 
-    func testResultMessageIncludesRoutingSummary() {
+    func testQueuedAndCompletedMessagesUseQueueStatus() {
         let model = CaptureWindowViewModel()
 
-        model.applyResult(
-            CaptureResponse(
+        model.applyQueued(
+            [
+                CaptureResponse(
+                    captureId: "cap-123",
+                    status: "queued",
+                    inboxItemPath: "/tmp/inbox/item.md",
+                    entities: [],
+                    actions: ["saved original", "queued"],
+                    followUp: nil
+                )
+            ]
+        )
+
+        XCTAssertEqual(model.resultMessage, "Queued 1 capture(s): cap-123")
+
+        model.applyStatus(
+            CaptureStatusResponse(
+                captureId: "cap-123",
+                status: "completed",
+                sourceChannel: "telegram",
+                captureType: "text",
                 inboxItemPath: "/tmp/inbox/item.md",
-                entities: ["personal/bike"],
-                actions: ["saved_original", "updated_history"],
-                followUp: "Mark this as personal or business?"
+                primaryPath: "/Mehr/Personal/motorbike/bmw-c400gt.md",
+                canonicalPaths: ["/Mehr/Personal/motorbike/bmw-c400gt.md"],
+                archivePaths: [],
+                followUp: nil,
+                error: nil,
+                queuedAt: "2026-03-14T10:00:00"
             )
         )
 
         XCTAssertEqual(
             model.resultMessage,
-            "Saved to /tmp/inbox/item.md\nEntities: personal/bike\nActions: saved_original, updated_history\nFollow-up: Mark this as personal or business?"
+            "Saved to Mehr: /Mehr/Personal/motorbike/bmw-c400gt.md"
         )
+    }
+
+    func testApplyErrorShowsFailureMessage() {
+        let model = CaptureWindowViewModel()
+
+        model.applyError(
+            NSError(domain: "NanobotCaptureTests", code: 1, userInfo: [NSLocalizedDescriptionKey: "network issue"])
+        )
+
+        XCTAssertEqual(model.resultMessage, "Capture failed: network issue")
     }
 }

@@ -76,6 +76,66 @@ final class NativeCaptureClientTests: XCTestCase {
 
         XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
     }
+
+    func testSubmitDecodesSnakeCaseQueuedResponse() async throws {
+        let data = """
+        {
+          "capture_id": "cap-123",
+          "status": "queued",
+          "inbox_item_path": "/tmp/item",
+          "entities": [],
+          "actions": ["saved original", "queued"],
+          "follow_up": null
+        }
+        """.data(using: .utf8)!
+
+        let client = NativeCaptureClient(
+            baseURL: URL(string: "http://127.0.0.1:18792")!,
+            session: StubHTTPSession(responseData: data),
+            tokenStore: StubTokenStore(token: "secret-token")
+        )
+
+        let response = try await client.submit(.text(contentText: "Bike note", userHint: "bike"))
+
+        XCTAssertEqual(response.captureId, "cap-123")
+        XCTAssertEqual(response.status, "queued")
+        XCTAssertEqual(response.inboxItemPath, "/tmp/item")
+    }
+
+    func testFetchRecentCapturesDecodesStatusPayload() async throws {
+        let data = """
+        {
+          "captures": [
+            {
+              "capture_id": "cap-1",
+              "status": "completed",
+              "source_channel": "telegram",
+              "capture_type": "text",
+              "inbox_item_path": "/tmp/item",
+              "primary_path": "/Mehr/Personal/motorbike/bmw-c400gt.md",
+              "canonical_paths": ["/Mehr/Personal/motorbike/bmw-c400gt.md"],
+              "archive_paths": [],
+              "follow_up": null,
+              "error": null,
+              "queued_at": "2026-03-14T10:00:00"
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let client = NativeCaptureClient(
+            baseURL: URL(string: "http://127.0.0.1:18792")!,
+            session: StubHTTPSession(responseData: data),
+            tokenStore: StubTokenStore(token: "secret-token")
+        )
+
+        let captures = try await client.fetchRecentCaptures()
+
+        XCTAssertEqual(captures.count, 1)
+        XCTAssertEqual(captures[0].captureId, "cap-1")
+        XCTAssertEqual(captures[0].sourceChannel, "telegram")
+        XCTAssertEqual(captures[0].primaryPath, "/Mehr/Personal/motorbike/bmw-c400gt.md")
+    }
 }
 
 private final class StubTokenStore: TokenStore, @unchecked Sendable {
@@ -95,6 +155,8 @@ private final class StubTokenStore: TokenStore, @unchecked Sendable {
 }
 
 private struct StubHTTPSession: HTTPSession {
+    var responseData: Data = Data("{}".utf8)
+
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         let response = HTTPURLResponse(
             url: try XCTUnwrap(request.url),
@@ -102,6 +164,6 @@ private struct StubHTTPSession: HTTPSession {
             httpVersion: nil,
             headerFields: nil
         )!
-        return (Data("{}".utf8), response)
+        return (responseData, response)
     }
 }

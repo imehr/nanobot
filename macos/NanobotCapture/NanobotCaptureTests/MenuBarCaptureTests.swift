@@ -22,21 +22,38 @@ final class MenuBarCaptureTests: XCTestCase {
         XCTAssertEqual(model.note, "Front tire pressure is 35 psi")
     }
 
-    func testResultRenderingIncludesFollowUp() {
+    func testQueuedAndCompletedResultRenderingUsesQueueStatus() {
         let model = MenuBarCaptureViewModel()
 
-        model.applyResult(
+        model.applyQueued(
             CaptureResponse(
+                captureId: "cap-123",
+                status: "queued",
                 inboxItemPath: "/tmp/inbox/item.md",
-                entities: ["personal/bike"],
-                actions: ["saved_original"],
-                followUp: "Classify this as personal or business?"
+                entities: [],
+                actions: ["saved original", "queued"],
+                followUp: nil
             )
         )
 
-        XCTAssertEqual(
-            model.resultMessage,
-            "Saved to /tmp/inbox/item.md\npersonal/bike\nsaved_original\nFollow-up: Classify this as personal or business?"
+        XCTAssertEqual(model.resultMessage, "Queued cap-123")
+
+        model.applyStatus(
+            CaptureStatusResponse(
+                captureId: "cap-123",
+                status: "needs_input",
+                sourceChannel: "telegram",
+                captureType: "text",
+                inboxItemPath: "/tmp/inbox/item.md",
+                primaryPath: "/tmp/inbox/item.md",
+                canonicalPaths: [],
+                archivePaths: [],
+                followUp: "Classify this as personal or business?",
+                error: nil,
+                queuedAt: "2026-03-14T10:00:00"
+            )
         )
+
+        XCTAssertEqual(model.resultMessage, "Classify this as personal or business?")
     }
 }

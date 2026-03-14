@@ -54,7 +54,11 @@ class KnowledgeWorker:
                     canonical_paths=canonical_paths,
                     archive_paths=archive_paths,
                 )
-            return self.store.transition_job(job.capture_id, status="needs_input")
+            return self.store.transition_job(
+                job.capture_id,
+                status="needs_input",
+                follow_up=decision.follow_up.question,
+            )
         except Exception as exc:
             return self.store.transition_job(job.capture_id, status="failed", error=str(exc))
 

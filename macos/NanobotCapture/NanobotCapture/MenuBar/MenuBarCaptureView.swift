@@ -32,6 +32,11 @@ struct MenuBarCaptureView: View {
             .buttonStyle(.borderedProminent)
             .disabled(!appState.menuBarCapture.canSubmit)
 
+            if appState.menuBarCapture.isSubmitting {
+                ProgressView()
+                    .controlSize(.small)
+            }
+
             if !appState.menuBarCapture.resultMessage.isEmpty {
                 Text(appState.menuBarCapture.resultMessage)
                     .font(.callout)

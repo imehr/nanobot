@@ -17,6 +17,29 @@ from python_multipart import parse_form
 from nanobot.knowledge.web_inbox import build_capture_response
 
 
+def build_job_status_payload(job) -> dict[str, object]:
+    primary_path = ""
+    if job.canonical_paths:
+        primary_path = str(job.canonical_paths[0])
+    elif job.archive_paths:
+        primary_path = str(job.archive_paths[0])
+    else:
+        primary_path = str(job.inbox_item_path)
+    return {
+        "capture_id": job.capture_id,
+        "status": job.status,
+        "source_channel": job.source_channel,
+        "capture_type": job.capture_type,
+        "inbox_item_path": str(job.inbox_item_path),
+        "primary_path": primary_path,
+        "canonical_paths": [str(path) for path in job.canonical_paths],
+        "archive_paths": [str(path) for path in job.archive_paths],
+        "follow_up": job.follow_up or None,
+        "error": job.error or None,
+        "queued_at": job.queued_at.isoformat() if job.queued_at else None,
+    }
+
+
 class NativeCaptureServer:
     """A small local-only inbox server for native macOS clients."""
 
@@ -49,40 +72,78 @@ class NativeCaptureServer:
                 self.wfile.write(data)
 
             def do_GET(self) -> None:  # noqa: N802
-                if self.path != "/health":
-                    self._send(404, json.dumps({"error": "not_found"}))
+                if self.path == "/health":
+                    self._send(200, json.dumps({"status": "ok"}))
                     return
-                self._send(200, json.dumps({"status": "ok"}))
+                if auth_token:
+                    provided = self.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+                    if provided != auth_token:
+                        self._send(401, json.dumps({"error": "unauthorized"}))
+                        return
+                if self.path == "/captures/recent":
+                    jobs = intake_service.store.list_recent_jobs()
+                    self._send(200, json.dumps({"captures": [build_job_status_payload(job) for job in jobs]}))
+                    return
+                if self.path.startswith("/captures/"):
+                    capture_id = self.path.removeprefix("/captures/").strip("/")
+                    try:
+                        job = intake_service.store.load_job(capture_id)
+                    except FileNotFoundError:
+                        self._send(404, json.dumps({"error": "not_found"}))
+                        return
+                    self._send(200, json.dumps(build_job_status_payload(job)))
+                    return
+                self._send(404, json.dumps({"error": "not_found"}))
 
             def do_POST(self) -> None:  # noqa: N802
-                if self.path != "/capture":
-                    self._send(404, json.dumps({"error": "not_found"}))
-                    return
                 provided = self.headers.get("Authorization", "").removeprefix("Bearer ").strip()
                 if auth_token and provided != auth_token:
                     self._send(401, json.dumps({"error": "unauthorized"}))
                     return
-                try:
-                    length = int(self.headers.get("Content-Length", "0"))
-                    content_type = self.headers.get("Content-Type", "")
-                    body = self.rfile.read(length)
-                    if "multipart/form-data" in content_type:
-                        result = self._handle_multipart_capture(body, content_type)
-                    else:
-                        result = self._handle_json_capture(body)
-                    self._send(
-                        202,
-                        build_capture_response(
-                            capture_id=result.capture_id,
-                            status=result.status,
-                            inbox_item_path=result.inbox_item_path,
-                            entities=result.entities,
-                            actions=result.actions,
-                            follow_up=result.follow_up.question if result.follow_up else None,
-                        ),
-                    )
-                except Exception as exc:  # pragma: no cover - defensive server path
-                    self._send(500, json.dumps({"error": str(exc)}))
+                if self.path == "/capture":
+                    try:
+                        length = int(self.headers.get("Content-Length", "0"))
+                        content_type = self.headers.get("Content-Type", "")
+                        body = self.rfile.read(length)
+                        if "multipart/form-data" in content_type:
+                            result = self._handle_multipart_capture(body, content_type)
+                        else:
+                            result = self._handle_json_capture(body)
+                        self._send(
+                            202,
+                            build_capture_response(
+                                capture_id=result.capture_id,
+                                status=result.status,
+                                inbox_item_path=result.inbox_item_path,
+                                entities=result.entities,
+                                actions=result.actions,
+                                follow_up=result.follow_up.question if result.follow_up else None,
+                            ),
+                        )
+                    except Exception as exc:  # pragma: no cover - defensive server path
+                        self._send(500, json.dumps({"error": str(exc)}))
+                    return
+                if self.path.endswith("/retract") and self.path.startswith("/captures/"):
+                    capture_id = self.path.removeprefix("/captures/").removesuffix("/retract")
+                    try:
+                        result = intake_service.retract_capture(capture_id)
+                        job = intake_service.store.load_job(capture_id)
+                    except FileNotFoundError:
+                        self._send(404, json.dumps({"error": "not_found"}))
+                        return
+                    self._send(200, json.dumps(build_job_status_payload(job)))
+                    return
+                if self.path.endswith("/retry") and self.path.startswith("/captures/"):
+                    capture_id = self.path.removeprefix("/captures/").removesuffix("/retry")
+                    try:
+                        intake_service.store.retry_job(capture_id)
+                        job = intake_service.store.load_job(capture_id)
+                    except FileNotFoundError:
+                        self._send(404, json.dumps({"error": "not_found"}))
+                        return
+                    self._send(200, json.dumps(build_job_status_payload(job)))
+                    return
+                self._send(404, json.dumps({"error": "not_found"}))
 
             def _handle_json_capture(self, body: bytes):
                 payload = json.loads(body or b"{}")

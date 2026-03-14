@@ -10,6 +10,7 @@ final class ShareExtensionModel: ObservableObject {
     @Published var attachmentSummary: String = "Preparing shared content..."
     @Published var resultMessage: String = ""
     @Published var isSubmitting: Bool = false
+    @Published var isCompleted: Bool = false
 
     private let extractor = ExtensionPayloadExtractor()
     private let client: NativeCaptureClient
@@ -60,9 +61,9 @@ final class ShareExtensionModel: ObservableObject {
 
         do {
             let hintText = hint.trimmingCharacters(in: .whitespacesAndNewlines)
-            let response: CaptureResponse
+            let queued: CaptureResponse
             if let fileURL = extractedPayload?.fileURL {
-                response = try await client.submit(
+                queued = try await client.submit(
                     .file(
                         fileURL: fileURL,
                         contentText: note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note,
@@ -70,18 +71,47 @@ final class ShareExtensionModel: ObservableObject {
                     )
                 )
             } else {
-                response = try await client.submit(
+                queued = try await client.submit(
                     .text(
                         contentText: note.trimmingCharacters(in: .whitespacesAndNewlines),
                         userHint: hintText.isEmpty ? nil : hintText
                     )
                 )
             }
-            resultMessage = "Captured to \(response.inboxItemPath)"
+            resultMessage = "Queued \(queued.captureId)"
+            let finalStatus = try await pollForTerminalStatus(queued.captureId)
+            resultMessage = describe(status: finalStatus)
+            isCompleted = true
             return true
         } catch {
             resultMessage = "Capture failed: \(error.localizedDescription)"
             return false
+        }
+    }
+
+    private func pollForTerminalStatus(_ captureID: String) async throws -> CaptureStatusResponse {
+        for _ in 0..<40 {
+            let status = try await client.fetchCapture(captureID)
+            if ["completed", "failed", "needs_input", "retracted"].contains(status.status) {
+                return status
+            }
+            try await Task.sleep(for: .milliseconds(350))
+        }
+        return try await client.fetchCapture(captureID)
+    }
+
+    func describe(status: CaptureStatusResponse) -> String {
+        switch status.status {
+        case "completed":
+            return "Saved to Mehr: \(status.primaryPath)"
+        case "needs_input":
+            return status.followUp ?? "Capture needs more input"
+        case "failed":
+            return "Capture failed: \(status.error ?? "Unknown error")"
+        case "retracted":
+            return "Capture retracted"
+        default:
+            return "Queued \(status.captureId)"
         }
     }
 }
@@ -114,15 +144,20 @@ struct ShareView: View {
                     onCancel()
                 }
                 Spacer()
-                Button(model.isSubmitting ? "Sending..." : "Send to Nanobot") {
-                    Task {
-                        if await model.submit() {
-                            onDone()
+                if model.isCompleted {
+                    Button("Done") {
+                        onDone()
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Button(model.isSubmitting ? "Sending..." : "Send to Nanobot") {
+                        Task {
+                            _ = await model.submit()
                         }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!model.canSubmit)
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(!model.canSubmit)
             }
         }
         .padding(20)
