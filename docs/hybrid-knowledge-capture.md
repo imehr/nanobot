@@ -6,10 +6,10 @@ This guide explains the capture system now available in `nanobot`, including the
 
 All capture methods feed the same hybrid knowledge pipeline:
 
-- `inbox/` keeps the raw original first
-- `entities/` stores canonical facts and histories
-- `ledgers/` stores structured transactions
-- `indexes/` supports retrieval
+- `~/.nanobot/workspace/queue/` and related folders keep runtime queue state only
+- `Mehr/` stores canonical organized memory
+- `Mehr/Projects/` stores concise project summaries and decisions
+- `Nanobot Archive/` stores preserved originals when evidence should be kept
 
 Available capture paths:
 
@@ -20,6 +20,26 @@ Available capture paths:
 - native macOS app window
 - native macOS menu bar capture
 - native macOS Share extension
+
+## Memory Model
+
+Use these three layers deliberately:
+
+- repo docs
+  - detailed engineering truth, design docs, implementation plans, ADR-style notes
+- `Mehr`
+  - canonical memory for entities, histories, ledgers, and project summaries
+- `Nanobot Archive`
+  - preserved originals outside `Mehr` so other AI tools do not see duplicate raw material
+
+Project memory lives under:
+
+- `Mehr/Projects/<project>/index.md`
+- `Mehr/Projects/<project>/decisions.md`
+- `Mehr/Projects/<project>/timeline.md`
+- `Mehr/Projects/<project>/features/*.md`
+
+This is where Nanobot stores short summaries of meaningful project work, while the repo keeps the full detail.
 
 ## This Mac Is Already Configured
 
@@ -42,6 +62,8 @@ Config already applied:
 - `knowledge.nativeCapture.enabled = true`
 - `knowledge.nativeCapture.bind = 127.0.0.1`
 - `knowledge.nativeCapture.port = 18792`
+- `knowledge.canonicalRoot = ~/Library/Mobile Documents/com~apple~CloudDocs/Mehr`
+- `knowledge.archiveRoot = ~/Library/Mobile Documents/com~apple~CloudDocs/Nanobot Archive`
 
 If you are using this exact Mac, skip to `How To Use Each Mac Capture Flow`.
 
@@ -130,6 +152,8 @@ open NanobotCapture.xcodeproj
 
 This installs the app bundle locally and gives the app access to the same native endpoint as the Share extension.
 
+The app also shows queued and processed capture status, including when a capture updates project memory under `Mehr/Projects/...`.
+
 ## How To Use Each Mac Capture Flow
 
 ### Menu Bar Capture
@@ -178,6 +202,8 @@ Clipboard screenshot flow:
 3. Press `Command-V` in the main window, or click `Paste Clipboard`.
 4. Confirm the screenshot appears in the Attachments panel as a thumbnail card and the status changes to `Screenshot added`.
 5. Click `Capture to Nanobot`.
+
+If the processed capture updates project memory, the result state prefers that destination and the recent-captures list marks it as `Project Memory`.
 
 ### Native Share Extension
 

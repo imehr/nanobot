@@ -164,10 +164,10 @@ Start here for the practical setup and day-to-day workflows:
 
 ### Storage layout
 
-- `inbox/` — raw captured items before routing
-- `entities/` — canonical files for things like `personal/bike` or `personal/house`
-- `ledgers/` — structured records such as `expenses.csv`
-- `indexes/` — routing and retrieval support files
+- `~/.nanobot/workspace/queue/` and related runtime folders — temporary queue state and processing logs
+- `Mehr/` — canonical organized memory
+- `Mehr/Projects/<project>/` — concise project summaries, decisions, timelines, and feature notes
+- `Nanobot Archive/` — preserved originals when evidence is worth keeping outside canonical memory
 - `memory/MEMORY.md` — compact always-loaded summary context
 
 ### Configure local capture
@@ -238,6 +238,21 @@ curl -X POST http://127.0.0.1:18791/capture \
   - Use `/capture ...` in Telegram, WhatsApp, or other chat channels
   - Example: `/capture This invoice is for my bike and the front tire pressure is 35 psi`
   - If you attach files with `/capture`, `nanobot` preserves the uploaded file before routing it
+
+### Project memory
+
+Use `Mehr/Projects/<project>/` for concise cross-project memory, not full engineering detail.
+
+- repo docs stay the technical source of truth
+- `Mehr/Projects` stores short summaries that matter across time and contexts
+- preserved originals stay in `Nanobot Archive`, not in project memory
+
+For `nanobot`, the live seed example is:
+
+- `Mehr/Projects/nanobot/index.md`
+- `Mehr/Projects/nanobot/decisions.md`
+- `Mehr/Projects/nanobot/timeline.md`
+- `Mehr/Projects/nanobot/features/*.md`
 
 ### Routing behavior
 

@@ -51,6 +51,8 @@ The app will:
 - install the Share extension for supported macOS Share flows
 - accept pasted images and screenshots in the main window via `Command-V` or `Paste Clipboard`
 - show pasted screenshots as attachment cards with thumbnails before submission
+- prefer project-memory destinations when a processed capture updates `Mehr/Projects/...`
+- mark recent items that wrote into project memory
 
 ## Verified local flows
 
@@ -76,3 +78,13 @@ They do not:
 - read the knowledge store
 
 All payloads go through the separate loopback-only native capture endpoint on `127.0.0.1:18792`.
+
+## Project memory visibility
+
+The app does not browse the whole knowledge base. It only shows capture status returned by the local endpoint.
+
+When a processed capture writes into `Mehr/Projects/<project>/...`, the app:
+
+- treats that path as the primary user-facing result
+- reveals that path in Finder
+- marks the recent capture as `Project Memory`
