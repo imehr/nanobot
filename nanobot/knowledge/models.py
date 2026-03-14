@@ -58,12 +58,23 @@ class FollowUpRequest(Base):
     question: str
 
 
+class ProjectMemoryAction(Base):
+    """A concise project-memory write requested by the router."""
+
+    target: str
+    summary: str
+    title: str = ""
+    slug: str = ""
+
+
 class IntakeDecision(Base):
     """Normalized routing decision for a captured item."""
 
     entities: list[str] = Field(default_factory=list)
     material_type: str = "reference"
     persistence_mode: str = "quarantine"
+    project_name: str = ""
+    project_memory_actions: list[ProjectMemoryAction] = Field(default_factory=list)
     facts: list[FactUpdate] = Field(default_factory=list)
     history_entries: list[str] = Field(default_factory=list)
     ledger_rows: list[LedgerRow] = Field(default_factory=list)

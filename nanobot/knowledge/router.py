@@ -19,6 +19,20 @@ _SAVE_INTAKE_DECISION_TOOL = [
                     "entities": {"type": "array", "items": {"type": "string"}},
                     "material_type": {"type": "string"},
                     "persistence_mode": {"type": "string"},
+                    "project_name": {"type": "string"},
+                    "project_memory_actions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "target": {"type": "string"},
+                                "summary": {"type": "string"},
+                                "title": {"type": "string"},
+                                "slug": {"type": "string"},
+                            },
+                            "required": ["target", "summary"],
+                        },
+                    },
                     "facts": {
                         "type": "array",
                         "items": {
