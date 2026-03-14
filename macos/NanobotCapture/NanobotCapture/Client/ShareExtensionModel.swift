@@ -102,6 +102,9 @@ final class ShareExtensionModel: ObservableObject {
     func describe(status: CaptureStatusResponse) -> String {
         switch status.status {
         case "completed":
+            if let projectPath = status.projectMemoryPaths.first {
+                return "Saved to Project Memory: \(projectPath)"
+            }
             return "Saved to Mehr: \(status.primaryPath)"
         case "needs_input":
             return status.followUp ?? "Capture needs more input"

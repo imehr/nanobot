@@ -14,9 +14,10 @@ final class SmokeTests: XCTestCase {
             sourceChannel: "telegram",
             captureType: "text",
             inboxItemPath: "/tmp/item",
-            primaryPath: "/Mehr/Personal/motorbike/bmw-c400gt.md",
-            canonicalPaths: ["/Mehr/Personal/motorbike/bmw-c400gt.md"],
+            primaryPath: "/Mehr/Projects/nanobot/decisions.md",
+            canonicalPaths: ["/Mehr/Work/projects/nanobot/index.md"],
             archivePaths: [],
+            projectMemoryPaths: ["/Mehr/Projects/nanobot/decisions.md"],
             followUp: nil,
             error: nil,
             queuedAt: "2026-03-14T10:00:00"
@@ -24,7 +25,7 @@ final class SmokeTests: XCTestCase {
 
         XCTAssertEqual(
             AppState.describe(status: status),
-            "Saved to Mehr: /Mehr/Personal/motorbike/bmw-c400gt.md"
+            "Saved to Project Memory: /Mehr/Projects/nanobot/decisions.md"
         )
     }
 
@@ -36,5 +37,24 @@ final class SmokeTests: XCTestCase {
         XCTAssertGreaterThan(CaptureWindowLayout.wideContentBreakpoint, 900)
         XCTAssertEqual(CaptureWindowLayout.mode(for: 1280), .wide)
         XCTAssertEqual(CaptureWindowLayout.mode(for: 820), .compact)
+    }
+
+    func testProjectMemoryStatusIsRecognized() {
+        let status = CaptureStatusResponse(
+            captureId: "cap-1",
+            status: "completed",
+            sourceChannel: "telegram",
+            captureType: "text",
+            inboxItemPath: "/tmp/item",
+            primaryPath: "/Mehr/Projects/nanobot/decisions.md",
+            canonicalPaths: [],
+            archivePaths: [],
+            projectMemoryPaths: ["/Mehr/Projects/nanobot/decisions.md"],
+            followUp: nil,
+            error: nil,
+            queuedAt: nil
+        )
+
+        XCTAssertTrue(AppState.isProjectMemoryCapture(status))
     }
 }

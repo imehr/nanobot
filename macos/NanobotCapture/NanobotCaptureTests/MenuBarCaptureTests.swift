@@ -58,20 +58,21 @@ final class MenuBarCaptureTests: XCTestCase {
         model.applyStatus(
             CaptureStatusResponse(
                 captureId: "cap-123",
-                status: "needs_input",
+                status: "completed",
                 sourceChannel: "telegram",
                 captureType: "text",
                 inboxItemPath: "/tmp/inbox/item.md",
-                primaryPath: "/tmp/inbox/item.md",
-                canonicalPaths: [],
+                primaryPath: "/Mehr/Projects/nanobot/timeline.md",
+                canonicalPaths: ["/Mehr/Work/projects/nanobot/index.md"],
                 archivePaths: [],
-                followUp: "Classify this as personal or business?",
+                projectMemoryPaths: ["/Mehr/Projects/nanobot/timeline.md"],
+                followUp: nil,
                 error: nil,
                 queuedAt: "2026-03-14T10:00:00"
             )
         )
 
-        XCTAssertEqual(model.resultMessage, "Classify this as personal or business?")
+        XCTAssertEqual(model.resultMessage, "Saved to Project Memory: /Mehr/Projects/nanobot/timeline.md")
     }
 
     func testEmbeddedShareExtensionBundleDeclaresShareServiceManifest() throws {

@@ -123,9 +123,10 @@ final class CaptureWindowViewModelTests: XCTestCase {
                 sourceChannel: "telegram",
                 captureType: "text",
                 inboxItemPath: "/tmp/inbox/item.md",
-                primaryPath: "/Mehr/Personal/motorbike/bmw-c400gt.md",
-                canonicalPaths: ["/Mehr/Personal/motorbike/bmw-c400gt.md"],
+                primaryPath: "/Mehr/Projects/nanobot/decisions.md",
+                canonicalPaths: ["/Mehr/Work/projects/nanobot/index.md"],
                 archivePaths: [],
+                projectMemoryPaths: ["/Mehr/Projects/nanobot/decisions.md"],
                 followUp: nil,
                 error: nil,
                 queuedAt: "2026-03-14T10:00:00"
@@ -134,9 +135,9 @@ final class CaptureWindowViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             model.resultMessage,
-            "Saved to Mehr: /Mehr/Personal/motorbike/bmw-c400gt.md"
+            "Saved to Project Memory: /Mehr/Projects/nanobot/decisions.md"
         )
-        XCTAssertEqual(model.lastCapturedItemURL?.path, "/Mehr/Personal/motorbike/bmw-c400gt.md")
+        XCTAssertEqual(model.lastCapturedItemURL?.path, "/Mehr/Projects/nanobot/decisions.md")
     }
 
     func testApplyErrorShowsFailureMessage() {

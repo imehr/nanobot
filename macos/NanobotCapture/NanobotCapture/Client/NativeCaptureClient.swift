@@ -12,7 +12,41 @@ struct CaptureResponse: Decodable {
     let inboxItemPath: String
     let entities: [String]
     let actions: [String]
+    let projectMemoryPaths: [String]
     let followUp: String?
+
+    init(
+        captureId: String,
+        status: String,
+        inboxItemPath: String,
+        entities: [String],
+        actions: [String],
+        projectMemoryPaths: [String] = [],
+        followUp: String?
+    ) {
+        self.captureId = captureId
+        self.status = status
+        self.inboxItemPath = inboxItemPath
+        self.entities = entities
+        self.actions = actions
+        self.projectMemoryPaths = projectMemoryPaths
+        self.followUp = followUp
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case captureId, status, inboxItemPath, entities, actions, projectMemoryPaths, followUp
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        captureId = try container.decode(String.self, forKey: .captureId)
+        status = try container.decode(String.self, forKey: .status)
+        inboxItemPath = try container.decode(String.self, forKey: .inboxItemPath)
+        entities = try container.decode([String].self, forKey: .entities)
+        actions = try container.decode([String].self, forKey: .actions)
+        projectMemoryPaths = try container.decodeIfPresent([String].self, forKey: .projectMemoryPaths) ?? []
+        followUp = try container.decodeIfPresent(String.self, forKey: .followUp)
+    }
 }
 
 struct CaptureStatusResponse: Decodable, Identifiable, Equatable {
@@ -24,11 +58,61 @@ struct CaptureStatusResponse: Decodable, Identifiable, Equatable {
     let primaryPath: String
     let canonicalPaths: [String]
     let archivePaths: [String]
+    let projectMemoryPaths: [String]
     let followUp: String?
     let error: String?
     let queuedAt: String?
 
     var id: String { captureId }
+
+    init(
+        captureId: String,
+        status: String,
+        sourceChannel: String,
+        captureType: String,
+        inboxItemPath: String,
+        primaryPath: String,
+        canonicalPaths: [String],
+        archivePaths: [String],
+        projectMemoryPaths: [String] = [],
+        followUp: String?,
+        error: String?,
+        queuedAt: String?
+    ) {
+        self.captureId = captureId
+        self.status = status
+        self.sourceChannel = sourceChannel
+        self.captureType = captureType
+        self.inboxItemPath = inboxItemPath
+        self.primaryPath = primaryPath
+        self.canonicalPaths = canonicalPaths
+        self.archivePaths = archivePaths
+        self.projectMemoryPaths = projectMemoryPaths
+        self.followUp = followUp
+        self.error = error
+        self.queuedAt = queuedAt
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case captureId, status, sourceChannel, captureType, inboxItemPath, primaryPath
+        case canonicalPaths, archivePaths, projectMemoryPaths, followUp, error, queuedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        captureId = try container.decode(String.self, forKey: .captureId)
+        status = try container.decode(String.self, forKey: .status)
+        sourceChannel = try container.decode(String.self, forKey: .sourceChannel)
+        captureType = try container.decode(String.self, forKey: .captureType)
+        inboxItemPath = try container.decode(String.self, forKey: .inboxItemPath)
+        primaryPath = try container.decode(String.self, forKey: .primaryPath)
+        canonicalPaths = try container.decodeIfPresent([String].self, forKey: .canonicalPaths) ?? []
+        archivePaths = try container.decodeIfPresent([String].self, forKey: .archivePaths) ?? []
+        projectMemoryPaths = try container.decodeIfPresent([String].self, forKey: .projectMemoryPaths) ?? []
+        followUp = try container.decodeIfPresent(String.self, forKey: .followUp)
+        error = try container.decodeIfPresent(String.self, forKey: .error)
+        queuedAt = try container.decodeIfPresent(String.self, forKey: .queuedAt)
+    }
 }
 
 private struct RecentCapturesResponse: Decodable {

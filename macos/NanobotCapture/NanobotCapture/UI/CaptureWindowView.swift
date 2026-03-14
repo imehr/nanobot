@@ -191,6 +191,13 @@ struct CaptureWindowView: View {
                                 Text(capture.captureId)
                                     .font(.caption.monospaced())
                                     .foregroundStyle(.secondary)
+                                if AppState.isProjectMemoryCapture(capture) {
+                                    Text("Project Memory")
+                                        .font(.caption2.weight(.semibold))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(Color.accentColor.opacity(0.12), in: Capsule())
+                                }
                                 Spacer()
                                 Text(capture.status.replacingOccurrences(of: "_", with: " "))
                                     .font(.caption.bold())

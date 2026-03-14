@@ -374,6 +374,9 @@ final class AppState: ObservableObject {
     static func describe(status: CaptureStatusResponse) -> String {
         switch status.status {
         case "completed":
+            if isProjectMemoryCapture(status), let projectPath = status.projectMemoryPaths.first {
+                return "Saved to Project Memory: \(projectPath)"
+            }
             return "Saved to Mehr: \(status.primaryPath)"
         case "needs_input":
             return status.followUp ?? "Capture needs more input"
@@ -389,6 +392,9 @@ final class AppState: ObservableObject {
     }
 
     static func resultURL(from status: CaptureStatusResponse) -> URL? {
+        if isProjectMemoryCapture(status), let projectPath = status.projectMemoryPaths.first, !projectPath.isEmpty {
+            return URL(fileURLWithPath: projectPath)
+        }
         if !status.primaryPath.isEmpty {
             return URL(fileURLWithPath: status.primaryPath)
         }
@@ -396,6 +402,10 @@ final class AppState: ObservableObject {
             return URL(fileURLWithPath: status.inboxItemPath)
         }
         return nil
+    }
+
+    static func isProjectMemoryCapture(_ status: CaptureStatusResponse) -> Bool {
+        !(status.projectMemoryPaths.first ?? "").isEmpty
     }
 
     private static func buildDefaultClient() -> NativeCaptureClient {
