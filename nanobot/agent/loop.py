@@ -14,6 +14,7 @@ from loguru import logger
 from nanobot.agent.context import ContextBuilder
 from nanobot.agent.memory import MemoryStore
 from nanobot.agent.subagent import SubagentManager
+from nanobot.agent.tools.agent_browser import AgentBrowserTool
 from nanobot.agent.tools.cron import CronTool
 from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
 from nanobot.agent.tools.message import MessageTool
@@ -27,7 +28,7 @@ from nanobot.providers.base import LLMProvider
 from nanobot.session.manager import Session, SessionManager
 
 if TYPE_CHECKING:
-    from nanobot.config.schema import ExecToolConfig
+    from nanobot.config.schema import BrowserToolConfig, ExecToolConfig
     from nanobot.cron.service import CronService
     from nanobot.knowledge.service import KnowledgeIntakeService
 
@@ -56,13 +57,14 @@ class AgentLoop:
         memory_window: int = 50,
         brave_api_key: str | None = None,
         exec_config: ExecToolConfig | None = None,
+        browser_config: BrowserToolConfig | None = None,
         cron_service: CronService | None = None,
         restrict_to_workspace: bool = False,
         session_manager: SessionManager | None = None,
         mcp_servers: dict | None = None,
         knowledge_service: KnowledgeIntakeService | None = None,
     ):
-        from nanobot.config.schema import ExecToolConfig
+        from nanobot.config.schema import BrowserToolConfig, ExecToolConfig
         from nanobot.knowledge.router import KnowledgeRouter
         from nanobot.knowledge.service import KnowledgeIntakeService
         self.bus = bus
@@ -75,6 +77,7 @@ class AgentLoop:
         self.memory_window = memory_window
         self.brave_api_key = brave_api_key
         self.exec_config = exec_config or ExecToolConfig()
+        self.browser_config = browser_config or BrowserToolConfig()
         self.cron_service = cron_service
         self.restrict_to_workspace = restrict_to_workspace
 
@@ -117,6 +120,15 @@ class AgentLoop:
         ))
         self.tools.register(WebSearchTool(api_key=self.brave_api_key))
         self.tools.register(WebFetchTool())
+        if self.browser_config.enabled:
+            self.tools.register(AgentBrowserTool(
+                command=self.browser_config.command,
+                headless=self.browser_config.headless,
+                timeout=self.browser_config.timeout,
+                cdp_url=self.browser_config.cdp_url,
+                extra_args=self.browser_config.extra_args,
+                session_prefix=self.browser_config.session_prefix,
+            ))
         self.tools.register(MessageTool(send_callback=self.bus.publish_outbound))
         self.tools.register(SpawnTool(manager=self.subagents))
         if self.cron_service:
@@ -144,11 +156,21 @@ class AgentLoop:
         finally:
             self._mcp_connecting = False
 
-    def _set_tool_context(self, channel: str, chat_id: str, message_id: str | None = None) -> None:
+    def _set_tool_context(
+        self,
+        channel: str,
+        chat_id: str,
+        session_key: str | None = None,
+        message_id: str | None = None,
+    ) -> None:
         """Update context for all tools that need routing info."""
         if message_tool := self.tools.get("message"):
             if isinstance(message_tool, MessageTool):
                 message_tool.set_context(channel, chat_id, message_id)
+
+        if browser_tool := self.tools.get("agent_browser"):
+            if isinstance(browser_tool, AgentBrowserTool):
+                browser_tool.set_context(channel, chat_id, session_key)
 
         if spawn_tool := self.tools.get("spawn"):
             if isinstance(spawn_tool, SpawnTool):
@@ -292,7 +314,12 @@ class AgentLoop:
             logger.info("Processing system message from {}", msg.sender_id)
             key = f"{channel}:{chat_id}"
             session = self.sessions.get_or_create(key)
-            self._set_tool_context(channel, chat_id, msg.metadata.get("message_id"))
+            self._set_tool_context(
+                channel,
+                chat_id,
+                session.key,
+                msg.metadata.get("message_id"),
+            )
             messages = self.context.build_messages(
                 history=session.get_history(max_messages=self.memory_window),
                 current_message=msg.content, channel=channel, chat_id=chat_id,
@@ -384,7 +411,12 @@ class AgentLoop:
 
             asyncio.create_task(_consolidate_and_unlock())
 
-        self._set_tool_context(msg.channel, msg.chat_id, msg.metadata.get("message_id"))
+        self._set_tool_context(
+            msg.channel,
+            msg.chat_id,
+            session.key,
+            msg.metadata.get("message_id"),
+        )
         if message_tool := self.tools.get("message"):
             if isinstance(message_tool, MessageTool):
                 message_tool.start_turn()

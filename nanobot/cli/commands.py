@@ -450,7 +450,9 @@ def gateway(
     config = load_config()
     bus = MessageBus()
     provider = _make_provider(config)
+    voice_provider = _make_provider(config)
     session_manager = SessionManager(config.workspace_path)
+    voice_session_manager = SessionManager(config.workspace_path)
     
     # Create cron service first (callback set after agent creation)
     cron_store_path = get_data_dir() / "cron" / "jobs.json"
@@ -468,9 +470,30 @@ def gateway(
         memory_window=config.agents.defaults.memory_window,
         brave_api_key=config.tools.web.search.api_key or None,
         exec_config=config.tools.exec,
+        browser_config=config.tools.browser,
         cron_service=cron,
         restrict_to_workspace=config.tools.restrict_to_workspace,
         session_manager=session_manager,
+        mcp_servers=config.tools.mcp_servers,
+    )
+
+    # Dedicated direct-chat agent for latency-sensitive adapters (e.g. voice webhooks).
+    # Keeps webhook inference isolated from the long-running bus loop.
+    voice_agent = AgentLoop(
+        bus=bus,
+        provider=voice_provider,
+        workspace=config.workspace_path,
+        model=config.agents.defaults.model,
+        temperature=config.agents.defaults.temperature,
+        max_tokens=config.agents.defaults.max_tokens,
+        max_iterations=config.agents.defaults.max_tool_iterations,
+        memory_window=config.agents.defaults.memory_window,
+        brave_api_key=config.tools.web.search.api_key or None,
+        exec_config=config.tools.exec,
+        browser_config=config.tools.browser,
+        cron_service=None,
+        restrict_to_workspace=config.tools.restrict_to_workspace,
+        session_manager=voice_session_manager,
         mcp_servers=config.tools.mcp_servers,
     )
     
@@ -505,8 +528,21 @@ def gateway(
         enabled=True
     )
     
+    async def direct_chat(
+        content: str,
+        session_key: str = "cli:direct",
+        channel: str = "cli",
+        chat_id: str = "direct",
+    ) -> str:
+        return await voice_agent.process_direct(
+            content=content,
+            session_key=session_key,
+            channel=channel,
+            chat_id=chat_id,
+        )
+
     # Create channel manager
-    channels = ChannelManager(config, bus)
+    channels = ChannelManager(config, bus, direct_chat=direct_chat)
     local_web_inbox = None
     native_capture_inbox = None
     watched_inbox = None
@@ -571,6 +607,7 @@ def gateway(
             console.print("\nShutting down...")
         finally:
             await agent.close_mcp()
+            await voice_agent.close_mcp()
             heartbeat.stop()
             cron.stop()
             agent.stop()
@@ -631,6 +668,7 @@ def agent(
         memory_window=config.agents.defaults.memory_window,
         brave_api_key=config.tools.web.search.api_key or None,
         exec_config=config.tools.exec,
+        browser_config=config.tools.browser,
         cron_service=cron,
         restrict_to_workspace=config.tools.restrict_to_workspace,
         mcp_servers=config.tools.mcp_servers,
@@ -773,6 +811,14 @@ def channels_status():
         "WhatsApp",
         "✓" if wa.enabled else "✗",
         wa.bridge_url
+    )
+
+    # Voice Call
+    vc = config.channels.voice_call
+    table.add_row(
+        "Voice Call",
+        "✓" if vc.enabled else "✗",
+        f"http://{vc.bind}:{vc.port}{vc.webhook_path}",
     )
 
     dc = config.channels.discord
@@ -1082,6 +1128,7 @@ def cron_run(
         memory_window=config.agents.defaults.memory_window,
         brave_api_key=config.tools.web.search.api_key or None,
         exec_config=config.tools.exec,
+        browser_config=config.tools.browser,
         restrict_to_workspace=config.tools.restrict_to_workspace,
         mcp_servers=config.tools.mcp_servers,
     )

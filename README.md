@@ -158,7 +158,9 @@ That's it! You have a working AI assistant in 2 minutes.
 
 `nanobot` can now route raw material into a hybrid memory layout instead of relying only on chat history.
 
-For a full end-user walkthrough, including the native macOS app and Share extension, see [docs/hybrid-knowledge-capture.md](docs/hybrid-knowledge-capture.md).
+Start here for the practical setup and day-to-day workflows:
+
+- [Hybrid Knowledge Capture Guide](docs/hybrid-knowledge-capture.md)
 
 ### Storage layout
 
@@ -273,6 +275,7 @@ Connect nanobot to your favorite chat platform.
 | **Telegram** | Bot token from @BotFather |
 | **Discord** | Bot token + Message Content intent |
 | **WhatsApp** | QR code scan |
+| **Voice Call (Twilio)** | Twilio account SID + auth token + phone number |
 | **Feishu** | App ID + App Secret |
 | **Mochat** | Claw token (auto-setup available) |
 | **DingTalk** | App Key + App Secret |
@@ -851,12 +854,45 @@ That's it! Environment variables, model prefixing, config matching, and `nanobot
 </details>
 
 
+### Browser Automation (`agent-browser`)
+
+nanobot uses [`agent-browser`](https://github.com/vercel-labs/agent-browser) for browser automation tasks.
+
+This browser path is **native to nanobot** and is **not MCP-based**.
+
+Add browser settings to your `config.json`:
+
+```json
+{
+  "tools": {
+    "browser": {
+      "enabled": true,
+      "command": "agent-browser",
+      "headless": true,
+      "timeout": 60,
+      "sessionPrefix": "nanobot"
+    }
+  }
+}
+```
+
+Install and prepare `agent-browser`:
+
+```bash
+npm install -g agent-browser
+agent-browser install
+```
+
+`nanobot` derives a stable browser session per conversation so login state can be reused across multi-step tasks. If you need to attach to an already signed-in Chrome instance, set `tools.browser.cdpUrl` to your CDP endpoint.
+
 ### MCP (Model Context Protocol)
 
 > [!TIP]
 > The config format is compatible with Claude Desktop / Cursor. You can copy MCP server configs directly from any MCP server's README.
 
 nanobot supports [MCP](https://modelcontextprotocol.io/) — connect external tool servers and use them as native agent tools.
+
+Use MCP for **non-browser** external tools. Browser automation should go through `agent-browser`.
 
 Add MCP servers to your `config.json`:
 

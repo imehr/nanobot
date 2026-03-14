@@ -158,6 +158,31 @@ def test_capture_text_command_uses_knowledge_service(tmp_path):
     assert "personal/bike" in result.stdout
 
 
+def test_agent_command_passes_browser_config(tmp_path: Path):
+    captured: dict[str, object] = {}
+
+    class FakeAgentLoop:
+        def __init__(self, *args, **kwargs):
+            captured.update(kwargs)
+
+        async def process_direct(self, *args, **kwargs):
+            return "ok"
+
+        async def close_mcp(self):
+            return None
+
+    config = Config()
+    config.agents.defaults.workspace = str(tmp_path)
+
+    with patch("nanobot.config.loader.load_config", return_value=config), \
+         patch("nanobot.cli.commands._make_provider", return_value=object()), \
+         patch("nanobot.agent.loop.AgentLoop", FakeAgentLoop):
+        result = runner.invoke(app, ["agent", "-m", "hello", "--no-markdown"])
+
+    assert result.exit_code == 0
+    assert captured["browser_config"] == config.tools.browser
+    
+    
 def test_capture_file_command_uses_knowledge_service(tmp_path):
     class FakeService:
         async def capture_file(self, file_path, *, user_hint="", source="local", content_text=""):

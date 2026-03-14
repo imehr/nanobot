@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from loguru import logger
 
@@ -23,9 +23,15 @@ class ChannelManager:
     - Route outbound messages
     """
     
-    def __init__(self, config: Config, bus: MessageBus):
+    def __init__(
+        self,
+        config: Config,
+        bus: MessageBus,
+        direct_chat: Callable[..., Awaitable[str]] | None = None,
+    ):
         self.config = config
         self.bus = bus
+        self.direct_chat = direct_chat
         self.channels: dict[str, BaseChannel] = {}
         self._dispatch_task: asyncio.Task | None = None
         
@@ -57,6 +63,19 @@ class ChannelManager:
                 logger.info("WhatsApp channel enabled")
             except ImportError as e:
                 logger.warning("WhatsApp channel not available: {}", e)
+
+        # Voice-call channel
+        if self.config.channels.voice_call.enabled:
+            try:
+                from nanobot.channels.voice import VoiceCallChannel
+                self.channels["voice-call"] = VoiceCallChannel(
+                    self.config.channels.voice_call,
+                    self.bus,
+                    direct_chat=self.direct_chat,
+                )
+                logger.info("Voice-call channel enabled")
+            except ImportError as e:
+                logger.warning("Voice-call channel not available: {}", e)
 
         # Discord channel
         if self.config.channels.discord.enabled:

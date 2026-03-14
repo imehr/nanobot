@@ -21,6 +21,31 @@ class WhatsAppConfig(Base):
     allow_from: list[str] = Field(default_factory=list)  # Allowed phone numbers
 
 
+class VoiceCallConfig(Base):
+    """Twilio voice-call channel configuration."""
+
+    enabled: bool = False
+    account_sid: str = ""
+    auth_token: str = ""
+    from_number: str = ""
+    allow_from: list[str] = Field(default_factory=list)  # Allowed caller phone numbers
+
+    bind: str = "0.0.0.0"
+    port: int = 3334
+    webhook_path: str = "/voice/webhook"
+    health_path: str = "/health"
+
+    public_base_url: str = ""  # Public URL root used for Twilio signature verification
+    validate_signature: bool = True
+    request_timeout_seconds: int = 45
+
+    welcome_message: str = "Hello, this is nanobot. How can I help you today?"
+    fallback_message: str = "Sorry, I ran into an issue. Please try again."
+    voice: str = "alice"
+    language: str = "en-AU"
+    gather_timeout_seconds: int = 3
+
+
 class TelegramConfig(Base):
     """Telegram channel configuration."""
 
@@ -169,6 +194,7 @@ class ChannelsConfig(Base):
     """Configuration for chat channels."""
 
     whatsapp: WhatsAppConfig = Field(default_factory=WhatsAppConfig)
+    voice_call: VoiceCallConfig = Field(default_factory=VoiceCallConfig)
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     discord: DiscordConfig = Field(default_factory=DiscordConfig)
     feishu: FeishuConfig = Field(default_factory=FeishuConfig)
@@ -284,6 +310,18 @@ class KnowledgeConfig(Base):
     native_capture: NativeCaptureConfig = Field(default_factory=NativeCaptureConfig)
 
 
+class BrowserToolConfig(Base):
+    """Native browser automation tool configuration."""
+
+    enabled: bool = True
+    command: str = "agent-browser"
+    headless: bool = True
+    timeout: int = 60
+    cdp_url: str = ""
+    extra_args: list[str] = Field(default_factory=list)
+    session_prefix: str = "nanobot"
+
+
 class MCPServerConfig(Base):
     """MCP server connection configuration (stdio or HTTP)."""
 
@@ -299,6 +337,7 @@ class ToolsConfig(Base):
 
     web: WebToolsConfig = Field(default_factory=WebToolsConfig)
     exec: ExecToolConfig = Field(default_factory=ExecToolConfig)
+    browser: BrowserToolConfig = Field(default_factory=BrowserToolConfig)
     restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)
 
