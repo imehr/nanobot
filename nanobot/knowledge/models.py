@@ -1,8 +1,9 @@
-"""Typed models for knowledge intake and routing results."""
+"""Typed models for knowledge intake, queueing, and routing results."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 from pydantic import Field
 
@@ -18,6 +19,20 @@ class InboxItem(Base):
     source: str = "local"
     capture_type: str = "text"
     timestamp: datetime | None = None
+
+
+class CaptureJob(Base):
+    """A queued capture job stored in local runtime state."""
+
+    capture_id: str
+    status: str = "queued"
+    source_channel: str = "local"
+    capture_type: str = "text"
+    inbox_item_path: Path
+    queued_at: datetime | None = None
+    canonical_paths: list[Path] = Field(default_factory=list)
+    archive_paths: list[Path] = Field(default_factory=list)
+    error: str = ""
 
 
 class FactUpdate(Base):

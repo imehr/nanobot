@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from nanobot.config.schema import KnowledgeConfig
-from nanobot.knowledge.models import FactUpdate, InboxItem, IntakeDecision
+from nanobot.knowledge.models import CaptureJob, FactUpdate, InboxItem, IntakeDecision
 
 
 class KnowledgeStore:
@@ -33,6 +33,26 @@ class KnowledgeStore:
         return self.workspace / self.config.entities_dir
 
     @property
+    def queue_dir(self) -> Path:
+        return self.workspace / self.config.queue_dir
+
+    @property
+    def processing_dir(self) -> Path:
+        return self.workspace / self.config.processing_dir
+
+    @property
+    def failed_dir(self) -> Path:
+        return self.workspace / self.config.failed_dir
+
+    @property
+    def retracted_dir(self) -> Path:
+        return self.workspace / self.config.retracted_dir
+
+    @property
+    def logs_dir(self) -> Path:
+        return self.workspace / self.config.logs_dir
+
+    @property
     def ledgers_dir(self) -> Path:
         return self.workspace / self.config.ledgers_dir
 
@@ -48,6 +68,11 @@ class KnowledgeStore:
         """Create the knowledge workspace directories if they do not exist."""
         for path in (
             self.inbox_dir,
+            self.queue_dir,
+            self.processing_dir,
+            self.failed_dir,
+            self.retracted_dir,
+            self.logs_dir,
             self.entities_dir,
             self.ledgers_dir,
             self.indexes_dir,
@@ -55,16 +80,43 @@ class KnowledgeStore:
         ):
             path.mkdir(parents=True, exist_ok=True)
 
+    def enqueue_capture(self, item: InboxItem) -> CaptureJob:
+        """Persist a staged inbox item and create a queued job record."""
+        item_id = item.item_id or uuid4().hex
+        item.item_id = item_id
+        item.timestamp = item.timestamp or datetime.now()
+        inbox_item_path = self.save_inbox_item(item)
+        job = CaptureJob(
+            capture_id=uuid4().hex,
+            status="queued",
+            source_channel=item.source,
+            capture_type=item.capture_type,
+            inbox_item_path=inbox_item_path,
+            queued_at=datetime.now(),
+        )
+        self._write_job(job, self.queue_dir)
+        return job
+
+    def load_job(self, capture_id: str) -> CaptureJob:
+        """Load a queued or transitioned job from local runtime state."""
+        for directory in (self.queue_dir, self.processing_dir, self.failed_dir, self.retracted_dir):
+            path = directory / f"{capture_id}.json"
+            if path.exists():
+                return CaptureJob.model_validate_json(path.read_text(encoding="utf-8"))
+        raise FileNotFoundError(f"Unknown capture job: {capture_id}")
+
     def save_inbox_item(self, item: InboxItem) -> Path:
         """Persist a captured raw item into the inbox and return its directory."""
         self.bootstrap()
         item_id = item.item_id or uuid4().hex
+        item.item_id = item_id
+        item.timestamp = item.timestamp or datetime.now()
         item_dir = self.inbox_dir / item_id
         item_dir.mkdir(parents=True, exist_ok=True)
         record = item.model_copy(
             update={
                 "item_id": item_id,
-                "timestamp": item.timestamp or datetime.now(),
+                "timestamp": item.timestamp,
             }
         )
         (item_dir / "item.json").write_text(
@@ -82,6 +134,14 @@ class KnowledgeStore:
         destination = attachments_dir / file_path.name
         shutil.copy2(file_path, destination)
         return destination
+
+    def _write_job(self, job: CaptureJob, directory: Path) -> Path:
+        path = directory / f"{job.capture_id}.json"
+        path.write_text(
+            json.dumps(job.model_dump(mode="json"), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return path
 
     def apply_decision(
         self,
