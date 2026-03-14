@@ -14,7 +14,6 @@ from loguru import logger
 from nanobot.agent.context import ContextBuilder
 from nanobot.agent.memory import MemoryStore
 from nanobot.agent.subagent import SubagentManager
-from nanobot.agent.tools.agent_browser import AgentBrowserTool
 from nanobot.agent.tools.cron import CronTool
 from nanobot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
 from nanobot.agent.tools.message import MessageTool
@@ -26,6 +25,11 @@ from nanobot.bus.events import InboundMessage, OutboundMessage
 from nanobot.bus.queue import MessageBus
 from nanobot.providers.base import LLMProvider
 from nanobot.session.manager import Session, SessionManager
+
+try:
+    from nanobot.agent.tools.agent_browser import AgentBrowserTool
+except ModuleNotFoundError:  # pragma: no cover - optional local tool
+    AgentBrowserTool = None
 
 if TYPE_CHECKING:
     from nanobot.config.schema import BrowserToolConfig, ExecToolConfig
@@ -120,7 +124,7 @@ class AgentLoop:
         ))
         self.tools.register(WebSearchTool(api_key=self.brave_api_key))
         self.tools.register(WebFetchTool())
-        if self.browser_config.enabled:
+        if self.browser_config.enabled and AgentBrowserTool is not None:
             self.tools.register(AgentBrowserTool(
                 command=self.browser_config.command,
                 headless=self.browser_config.headless,
@@ -169,7 +173,7 @@ class AgentLoop:
                 message_tool.set_context(channel, chat_id, message_id)
 
         if browser_tool := self.tools.get("agent_browser"):
-            if isinstance(browser_tool, AgentBrowserTool):
+            if AgentBrowserTool is not None and isinstance(browser_tool, AgentBrowserTool):
                 browser_tool.set_context(channel, chat_id, session_key)
 
         if spawn_tool := self.tools.get("spawn"):
@@ -384,15 +388,13 @@ class AgentLoop:
                 )
 
             follow_up = next((result.follow_up for result in results if result.follow_up is not None), None)
-            all_entities = sorted({entity for result in results for entity in result.entities})
-            all_actions = [action for result in results for action in result.actions]
+            capture_ids = [result.capture_id for result in results if getattr(result, "capture_id", "")]
 
             if follow_up is not None:
                 content = follow_up.question
             else:
-                entities = ", ".join(all_entities) if all_entities else "unclassified"
-                actions = ", ".join(all_actions) if all_actions else "saved"
-                content = f"Captured to {entities}. Actions: {actions}."
+                captures = ", ".join(capture_ids) if capture_ids else "capture queued"
+                content = f"Queued for processing. Capture IDs: {captures}."
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,

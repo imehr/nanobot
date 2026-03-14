@@ -142,9 +142,11 @@ def test_capture_text_command_uses_knowledge_service(tmp_path):
             assert user_hint == "bike"
             assert source == "cli"
             return CaptureResult(
+                capture_id="cap-text-1",
+                status="queued",
                 inbox_item_path=tmp_path / "item",
                 entities=["personal/bike"],
-                actions=["saved original"],
+                actions=["saved original", "queued"],
             )
 
     config = Config.model_validate({})
@@ -155,7 +157,7 @@ def test_capture_text_command_uses_knowledge_service(tmp_path):
         result = runner.invoke(app, ["capture", "text", "Bike invoice", "--hint", "bike"])
 
     assert result.exit_code == 0
-    assert "personal/bike" in result.stdout
+    assert "Queued capture cap-text-1" in result.stdout
 
 
 def test_agent_command_passes_browser_config(tmp_path: Path):
@@ -190,9 +192,11 @@ def test_capture_file_command_uses_knowledge_service(tmp_path):
             assert user_hint == "bike"
             assert source == "cli"
             return CaptureResult(
+                capture_id="cap-file-1",
+                status="queued",
                 inbox_item_path=tmp_path / "item",
                 entities=["personal/bike"],
-                actions=["saved original"],
+                actions=["saved original", "queued"],
             )
 
     config = Config.model_validate({})
@@ -205,13 +209,16 @@ def test_capture_file_command_uses_knowledge_service(tmp_path):
         result = runner.invoke(app, ["capture", "file", str(artifact), "--hint", "bike"])
 
     assert result.exit_code == 0
-    assert "personal/bike" in result.stdout
+    assert "Queued capture cap-file-1" in result.stdout
 
 
 def test_gateway_starts_native_capture_server_when_enabled(tmp_path):
+    class FakeKnowledgeService:
+        router = object()
+
     class FakeAgentLoop:
         def __init__(self, *args, **kwargs):
-            self.knowledge_service = object()
+            self.knowledge_service = FakeKnowledgeService()
 
         async def run(self):
             return None
@@ -272,6 +279,23 @@ def test_gateway_starts_native_capture_server_when_enabled(tmp_path):
         def stop(self):
             type(self).stopped = True
 
+    class FakeKnowledgeWorker:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class FakeKnowledgeWorkerService:
+        started = False
+        stopped = False
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def start(self):
+            type(self).started = True
+
+        def stop(self):
+            type(self).stopped = True
+
     config = Config.model_validate({})
     config.agents.defaults.workspace = str(tmp_path)
     config.knowledge.local_web.enabled = False
@@ -289,7 +313,9 @@ def test_gateway_starts_native_capture_server_when_enabled(tmp_path):
          patch("nanobot.session.manager.SessionManager"), \
          patch("nanobot.cron.service.CronService", FakeCronService), \
          patch("nanobot.heartbeat.service.HeartbeatService", FakeHeartbeatService), \
-         patch("nanobot.knowledge.native_inbox.NativeCaptureServer", FakeNativeCaptureServer):
+         patch("nanobot.knowledge.native_inbox.NativeCaptureServer", FakeNativeCaptureServer), \
+         patch("nanobot.knowledge.worker.KnowledgeWorker", FakeKnowledgeWorker), \
+         patch("nanobot.knowledge.worker.KnowledgeWorkerService", FakeKnowledgeWorkerService):
         result = runner.invoke(app, ["gateway"])
 
     assert result.exit_code == 0
@@ -297,3 +323,5 @@ def test_gateway_starts_native_capture_server_when_enabled(tmp_path):
     assert FakeNativeCaptureServer.kwargs["auth_token"] == "native-secret"
     assert FakeNativeCaptureServer.started is True
     assert FakeNativeCaptureServer.stopped is True
+    assert FakeKnowledgeWorkerService.started is True
+    assert FakeKnowledgeWorkerService.stopped is True

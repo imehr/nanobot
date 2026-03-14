@@ -18,15 +18,19 @@ class FakeKnowledgeService:
     async def capture_text(self, content_text: str, *, user_hint: str = "", source: str = "local"):
         self.last_text = content_text
         return CaptureResult(
+            capture_id="cap-text-1",
+            status="queued",
             inbox_item_path=None,
             entities=["personal/bike"],
-            actions=["saved original", "updated bike history"],
+            actions=["saved original", "queued"],
         )
 
     async def capture_file(self, file_path, *, user_hint: str = "", source: str = "local"):
         return CaptureResult(
+            capture_id=f"cap-{file_path.stem}",
+            status="queued",
             inbox_item_path=None,
-            entities=["personal/bike"],
+            entities=[],
             actions=[f"saved {file_path.name}"],
         )
 
@@ -50,7 +54,8 @@ async def test_capture_mode_routes_to_knowledge_service(tmp_path) -> None:
     response = await loop._process_message(msg)
 
     assert response is not None
-    assert "personal/bike" in response.content
+    assert "Queued for processing." in response.content
+    assert "cap-text-1" in response.content
 
 
 @pytest.mark.asyncio
@@ -75,7 +80,7 @@ async def test_capture_mode_routes_media_to_knowledge_service(tmp_path) -> None:
     response = await loop._process_message(msg)
 
     assert response is not None
-    assert "saved invoice.pdf" in response.content
+    assert "cap-invoice" in response.content
 
 
 @pytest.mark.asyncio
@@ -97,5 +102,5 @@ async def test_capture_command_routes_message_without_metadata(tmp_path) -> None
     response = await loop._process_message(msg)
 
     assert response is not None
-    assert "personal/bike" in response.content
+    assert "Queued for processing." in response.content
     assert service.last_text == "Bike invoice for regular service centre"

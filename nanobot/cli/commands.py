@@ -357,6 +357,9 @@ def _render_capture_result(result) -> None:
     if result.follow_up is not None:
         console.print(result.follow_up.question)
         return
+    if getattr(result, "status", "") == "queued":
+        console.print(f"Queued capture {result.capture_id}. Staged at {result.inbox_item_path}.")
+        return
     entities = ", ".join(result.entities) if result.entities else "unclassified"
     actions = ", ".join(result.actions) if result.actions else "saved"
     console.print(f"Captured to {entities}. Actions: {actions}.")
@@ -440,6 +443,7 @@ def gateway(
     from nanobot.knowledge.native_inbox import NativeCaptureServer
     from nanobot.knowledge.watcher import WatchedInboxService
     from nanobot.knowledge.web_inbox import LocalWebInboxServer
+    from nanobot.knowledge.worker import KnowledgeWorker, KnowledgeWorkerService
     
     if verbose:
         import logging
@@ -546,6 +550,15 @@ def gateway(
     local_web_inbox = None
     native_capture_inbox = None
     watched_inbox = None
+    knowledge_worker_service = None
+    if config.knowledge.enabled:
+        knowledge_worker_service = KnowledgeWorkerService(
+            KnowledgeWorker(
+                config.workspace_path,
+                router=agent.knowledge_service.router,
+                config=config.knowledge,
+            )
+        )
     if config.knowledge.enabled and config.knowledge.local_web.enabled:
         local_web_inbox = LocalWebInboxServer(
             bind=config.knowledge.local_web.bind,
@@ -593,6 +606,8 @@ def gateway(
         try:
             await cron.start()
             await heartbeat.start()
+            if knowledge_worker_service is not None:
+                knowledge_worker_service.start()
             if local_web_inbox is not None:
                 local_web_inbox.start()
             if native_capture_inbox is not None:
@@ -617,6 +632,8 @@ def gateway(
                 native_capture_inbox.stop()
             if watched_inbox is not None:
                 watched_inbox.stop()
+            if knowledge_worker_service is not None:
+                knowledge_worker_service.stop()
             await channels.stop_all()
     
     asyncio.run(run())

@@ -71,8 +71,10 @@ class NativeCaptureServer:
                     else:
                         result = self._handle_json_capture(body)
                     self._send(
-                        200,
+                        202,
                         build_capture_response(
+                            capture_id=result.capture_id,
+                            status=result.status,
                             inbox_item_path=result.inbox_item_path,
                             entities=result.entities,
                             actions=result.actions,

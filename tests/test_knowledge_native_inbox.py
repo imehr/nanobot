@@ -22,9 +22,11 @@ class FakeIntakeService:
             }
         )
         return CaptureResult(
+            capture_id="cap-text-1",
+            status="queued",
             inbox_item_path=Path("/tmp/native-text"),
             entities=["personal/bike"],
-            actions=["saved original", "applied decision"],
+            actions=["saved original", "queued"],
         )
 
     async def capture_file(
@@ -45,9 +47,11 @@ class FakeIntakeService:
             }
         )
         return CaptureResult(
+            capture_id="cap-file-1",
+            status="queued",
             inbox_item_path=Path("/tmp/native-file"),
             entities=["personal/bike"],
-            actions=["saved original", "applied decision"],
+            actions=["saved original", "queued"],
         )
 
 
@@ -84,7 +88,9 @@ def test_native_inbox_health_and_capture(tmp_path: Path) -> None:
             json={"content_text": "Front tire pressure is 35 psi", "user_hint": "bike"},
             timeout=5,
         )
-        assert authorized.status_code == 200
+        assert authorized.status_code == 202
+        assert authorized.json()["status"] == "queued"
+        assert authorized.json()["capture_id"] == "cap-text-1"
         assert authorized.json()["entities"] == ["personal/bike"]
         assert intake.text_calls == [
             {
@@ -101,7 +107,9 @@ def test_native_inbox_health_and_capture(tmp_path: Path) -> None:
             files={"file": ("invoice.txt", b"paid 199.00", "text/plain")},
             timeout=5,
         )
-        assert upload.status_code == 200
+        assert upload.status_code == 202
+        assert upload.json()["status"] == "queued"
+        assert upload.json()["capture_id"] == "cap-file-1"
         assert upload.json()["entities"] == ["personal/bike"]
         assert intake.file_calls == [
             {

@@ -257,6 +257,8 @@ def build_result_page(
 
 def build_capture_response(
     *,
+    capture_id: str,
+    status: str,
     inbox_item_path: Path,
     entities: list[str],
     actions: list[str],
@@ -265,6 +267,8 @@ def build_capture_response(
     """Build the JSON response payload for a capture request."""
     return json.dumps(
         {
+            "capture_id": capture_id,
+            "status": status,
             "inbox_item_path": str(inbox_item_path),
             "entities": entities,
             "actions": actions,
@@ -344,8 +348,10 @@ class LocalWebInboxServer:
                     else:
                         result = self._handle_json_capture(body)
                         self._send(
-                            200,
+                            202,
                             build_capture_response(
+                                capture_id=result.capture_id,
+                                status=result.status,
                                 inbox_item_path=result.inbox_item_path,
                                 entities=result.entities,
                                 actions=result.actions,
