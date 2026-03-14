@@ -411,11 +411,10 @@ final class AppState: ObservableObject {
     private static func buildDefaultClient() -> NativeCaptureClient {
         let env = ProcessInfo.processInfo.environment
         let baseURL = URL(string: env["NANOBOT_NATIVE_CAPTURE_BASE_URL"] ?? "http://127.0.0.1:18792")!
-        let client = NativeCaptureClient(baseURL: baseURL)
-        if let token = env["NANOBOT_NATIVE_CAPTURE_TOKEN"], !token.isEmpty {
-            try? client.storeToken(token)
-        }
-        return client
+        return NativeCaptureClient(
+            baseURL: baseURL,
+            token: env["NANOBOT_NATIVE_CAPTURE_TOKEN"]
+        )
     }
 
     @discardableResult

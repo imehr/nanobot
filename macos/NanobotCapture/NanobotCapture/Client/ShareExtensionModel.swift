@@ -22,11 +22,10 @@ final class ShareExtensionModel: ObservableObject {
     init(client: NativeCaptureClient? = nil) {
         let env = ProcessInfo.processInfo.environment
         let baseURL = URL(string: env["NANOBOT_NATIVE_CAPTURE_BASE_URL"] ?? "http://127.0.0.1:18792")!
-        let resolvedClient = client ?? NativeCaptureClient(baseURL: baseURL)
-        if let token = env["NANOBOT_NATIVE_CAPTURE_TOKEN"], !token.isEmpty {
-            try? resolvedClient.storeToken(token)
-        }
-        self.client = resolvedClient
+        self.client = client ?? NativeCaptureClient(
+            baseURL: baseURL,
+            token: env["NANOBOT_NATIVE_CAPTURE_TOKEN"]
+        )
     }
 
     var canSubmit: Bool {

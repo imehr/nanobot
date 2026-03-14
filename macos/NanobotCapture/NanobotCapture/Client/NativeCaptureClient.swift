@@ -130,20 +130,27 @@ final class NativeCaptureClient: @unchecked Sendable {
     private let captureURL: URL
     private let session: HTTPSession
     private let tokenStore: TokenStore
+    private let explicitToken: String?
 
     init(
         baseURL: URL,
         session: HTTPSession = URLSession.shared,
-        tokenStore: TokenStore = KeychainStore()
+        tokenStore: TokenStore = KeychainStore(),
+        token: String? = nil
     ) {
         self.baseURL = baseURL
         self.captureURL = baseURL.appendingPathComponent("capture")
         self.session = session
         self.tokenStore = tokenStore
+        let trimmedToken = token?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.explicitToken = (trimmedToken?.isEmpty == false) ? trimmedToken : nil
     }
 
     func currentToken() throws -> String? {
-        try tokenStore.readToken()
+        if let explicitToken {
+            return explicitToken
+        }
+        return try tokenStore.readToken()
     }
 
     func storeToken(_ token: String) throws {
@@ -154,7 +161,7 @@ final class NativeCaptureClient: @unchecked Sendable {
         var request = URLRequest(url: captureURL)
         request.httpMethod = "POST"
 
-        if let token = try tokenStore.readToken(), !token.isEmpty {
+        if let token = try authorizationToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -209,9 +216,19 @@ final class NativeCaptureClient: @unchecked Sendable {
     }
 
     private func applyAuthorization(to request: inout URLRequest) throws {
-        if let token = try tokenStore.readToken(), !token.isEmpty {
+        if let token = try authorizationToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
+    }
+
+    private func authorizationToken() throws -> String? {
+        if let explicitToken {
+            return explicitToken
+        }
+        guard let token = try tokenStore.readToken(), !token.isEmpty else {
+            return nil
+        }
+        return token
     }
 
     private func decode<T: Decodable>(_ type: T.Type, request: URLRequest) async throws -> T {

@@ -5,7 +5,7 @@ import XCTest
 final class NativeCaptureClientTests: XCTestCase {
     func testSubmitDecodesSnakeCaseNativeCaptureResponse() async throws {
         let payload = Data(
-            #"{"inbox_item_path":"/tmp/inbox/item.md","entities":["personal/bike"],"actions":["saved original","applied decision"],"follow_up":null}"#
+            #"{"capture_id":"cap-legacy","status":"queued","inbox_item_path":"/tmp/inbox/item.md","entities":["personal/bike"],"actions":["saved original","applied decision"],"follow_up":null}"#
                 .utf8
         )
         let client = NativeCaptureClient(
@@ -21,6 +21,8 @@ final class NativeCaptureClientTests: XCTestCase {
             )
         )
 
+        XCTAssertEqual(response.captureId, "cap-legacy")
+        XCTAssertEqual(response.status, "queued")
         XCTAssertEqual(response.inboxItemPath, "/tmp/inbox/item.md")
         XCTAssertEqual(response.entities, ["personal/bike"])
         XCTAssertEqual(response.actions, ["saved original", "applied decision"])
@@ -160,6 +162,59 @@ final class NativeCaptureClientTests: XCTestCase {
         XCTAssertEqual(captures[0].sourceChannel, "telegram")
         XCTAssertEqual(captures[0].primaryPath, "/Mehr/Personal/motorbike/bmw-c400gt.md")
     }
+
+    func testExplicitTokenSkipsKeychainForSubmitRequests() throws {
+        let tokenStore = CountingTokenStore(token: "keychain-token")
+        let client = NativeCaptureClient(
+            baseURL: URL(string: "http://127.0.0.1:18792")!,
+            session: StubHTTPSession(),
+            tokenStore: tokenStore,
+            token: "env-token"
+        )
+
+        let request = try client.makeRequest(
+            for: .text(
+                contentText: "Bike note",
+                userHint: "bike"
+            )
+        )
+
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer env-token")
+        XCTAssertEqual(tokenStore.readCount, 0)
+    }
+
+    func testExplicitTokenSkipsKeychainForStatusRequests() async throws {
+        let tokenStore = CountingTokenStore(token: "keychain-token")
+        let client = NativeCaptureClient(
+            baseURL: URL(string: "http://127.0.0.1:18792")!,
+            session: StubHTTPSession(
+                responseData: """
+                {
+                  "capture_id": "cap-1",
+                  "status": "completed",
+                  "source_channel": "mac_app",
+                  "capture_type": "image",
+                  "inbox_item_path": "/tmp/item",
+                  "primary_path": "/Mehr/Projects/nanobot/timeline.md",
+                  "canonical_paths": [],
+                  "archive_paths": [],
+                  "project_memory_paths": ["/Mehr/Projects/nanobot/timeline.md"],
+                  "follow_up": null,
+                  "error": null,
+                  "queued_at": "2026-03-14T10:00:00"
+                }
+                """.data(using: .utf8)!
+            ),
+            tokenStore: tokenStore,
+            token: "env-token"
+        )
+
+        let status = try await client.fetchCapture("cap-1")
+
+        XCTAssertEqual(status.captureId, "cap-1")
+        XCTAssertEqual(status.primaryPath, "/Mehr/Projects/nanobot/timeline.md")
+        XCTAssertEqual(tokenStore.readCount, 0)
+    }
 }
 
 private final class StubTokenStore: TokenStore, @unchecked Sendable {
@@ -174,6 +229,26 @@ private final class StubTokenStore: TokenStore, @unchecked Sendable {
     }
 
     func writeToken(_ token: String) throws {
+        self.token = token
+    }
+}
+
+private final class CountingTokenStore: TokenStore, @unchecked Sendable {
+    private(set) var readCount: Int = 0
+    private(set) var writeCount: Int = 0
+    private var token: String?
+
+    init(token: String?) {
+        self.token = token
+    }
+
+    func readToken() throws -> String? {
+        readCount += 1
+        return token
+    }
+
+    func writeToken(_ token: String) throws {
+        writeCount += 1
         self.token = token
     }
 }
