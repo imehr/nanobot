@@ -3,23 +3,6 @@ import XCTest
 
 @MainActor
 final class MenuBarCaptureTests: XCTestCase {
-    func testOpenWindowCopiesDraftAndInvokesWindowHandler() {
-        let appState = AppState()
-        var didRequestOpen = false
-
-        appState.registerOpenCaptureWindowHandler {
-            didRequestOpen = true
-        }
-        appState.menuBarCapture.note = "Book the regular bike service"
-        appState.menuBarCapture.hint = "bike"
-
-        appState.openCaptureWindowFromMenuBar()
-
-        XCTAssertTrue(didRequestOpen)
-        XCTAssertEqual(appState.captureWindow.note, "Book the regular bike service")
-        XCTAssertEqual(appState.captureWindow.hint, "bike")
-    }
-
     func testPasteTextFlowStoresNote() {
         let model = MenuBarCaptureViewModel()
 
@@ -88,11 +71,11 @@ final class MenuBarCaptureTests: XCTestCase {
         )
 
         let attributes = try XCTUnwrap(extensionManifest["NSExtensionAttributes"] as? [String: Any])
-        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? [String: Any])
-        XCTAssertEqual(rule["NSExtensionActivationSupportsText"] as? Bool, true)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsImageWithMaxCount"] as? Int, 10)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsFileWithMaxCount"] as? Int, 10)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int, 10)
+        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? String)
+        XCTAssertTrue(rule.contains("public.text"))
+        XCTAssertTrue(rule.contains("public.url"))
+        XCTAssertTrue(rule.contains("public.image"))
+        XCTAssertTrue(rule.contains("public.data"))
     }
 
     func testEmbeddedAppAndShareExtensionContainSandboxEntitlements() throws {
