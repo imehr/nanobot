@@ -160,6 +160,13 @@ class KnowledgeStore:
         self._write_job(updated, self._directory_for_status(status))
         return updated
 
+    def retract_job(self, capture_id: str) -> CaptureJob:
+        """Retract a previously processed job and remove linked outputs."""
+        job = self.load_job(capture_id)
+        for path in [*job.canonical_paths, *job.archive_paths]:
+            self._unlink_file(path)
+        return self.transition_job(capture_id, status="retracted")
+
     def save_inbox_item(self, item: InboxItem) -> Path:
         """Persist a captured raw item into the inbox and return its directory."""
         self.bootstrap()
@@ -305,3 +312,15 @@ class KnowledgeStore:
         destination = archive_dir / artifact_path.name
         shutil.copy2(artifact_path, destination)
         return destination
+
+    def _unlink_file(self, path: Path) -> None:
+        if not path.exists():
+            return
+        path.unlink()
+        for parent in path.parents:
+            if parent in (self.canonical_root, self.archive_root, self.workspace):
+                break
+            try:
+                parent.rmdir()
+            except OSError:
+                break

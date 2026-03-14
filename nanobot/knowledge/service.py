@@ -77,3 +77,13 @@ class KnowledgeIntakeService:
             inbox_item_path=job.inbox_item_path,
             actions=["saved original", "queued"],
         )
+
+    def retract_capture(self, capture_id: str) -> CaptureResult:
+        """Retract a processed capture and remove its linked outputs."""
+        job = self.store.retract_job(capture_id)
+        return CaptureResult(
+            capture_id=job.capture_id,
+            status=job.status,
+            inbox_item_path=job.inbox_item_path,
+            actions=["retracted"],
+        )
