@@ -17,3 +17,15 @@ def test_knowledge_config_defaults() -> None:
     assert config.knowledge.native_capture.bind == "127.0.0.1"
     assert config.knowledge.native_capture.port == 18792
     assert config.knowledge.native_capture.auth_token == ""
+
+
+def test_knowledge_config_defaults_include_queue_and_canonical_targets() -> None:
+    config = Config.model_validate({})
+
+    assert config.knowledge.queue_dir == "queue"
+    assert config.knowledge.processing_dir == "processing"
+    assert config.knowledge.failed_dir == "failed"
+    assert config.knowledge.retracted_dir == "retracted"
+    assert config.knowledge.logs_dir == "logs"
+    assert config.knowledge.canonical_root == "~/Library/Mobile Documents/com~apple~CloudDocs/Mehr"
+    assert config.knowledge.archive_root == "~/Library/Mobile Documents/com~apple~CloudDocs/Nanobot Archive"

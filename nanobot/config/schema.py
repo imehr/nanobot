@@ -301,10 +301,17 @@ class KnowledgeConfig(Base):
 
     enabled: bool = True
     inbox_dir: str = "inbox"
+    queue_dir: str = "queue"
+    processing_dir: str = "processing"
+    failed_dir: str = "failed"
+    retracted_dir: str = "retracted"
+    logs_dir: str = "logs"
     entities_dir: str = "entities"
     ledgers_dir: str = "ledgers"
     indexes_dir: str = "indexes"
     review_dir: str = "inbox/review"
+    canonical_root: str = "~/Library/Mobile Documents/com~apple~CloudDocs/Mehr"
+    archive_root: str = "~/Library/Mobile Documents/com~apple~CloudDocs/Nanobot Archive"
     watched_paths: list[str] = Field(default_factory=list)
     local_web: LocalWebInboxConfig = Field(default_factory=LocalWebInboxConfig)
     native_capture: NativeCaptureConfig = Field(default_factory=NativeCaptureConfig)
