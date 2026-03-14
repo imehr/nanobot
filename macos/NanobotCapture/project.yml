@@ -30,6 +30,7 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         ENABLE_DEBUG_DYLIB: NO
         ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
         CODE_SIGN_ENTITLEMENTS: NanobotCapture/NanobotCapture.entitlements
     scheme:
       testTargets:
@@ -59,9 +60,20 @@ targets:
           - Info.plist
     info:
       path: NanobotCaptureShareExtension/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsFileWithMaxCount: 10
+              NSExtensionActivationSupportsWebURLWithMaxCount: 10
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: NanobotCaptureShareExtension.ShareViewController
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ai.nanobot.capture.share
         PRODUCT_NAME: NanobotCaptureShareExtension
         ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
         CODE_SIGN_ENTITLEMENTS: NanobotCaptureShareExtension/NanobotCaptureShareExtension.entitlements
