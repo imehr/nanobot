@@ -22,6 +22,7 @@ class CaptureResult:
     inbox_item_path: Path
     entities: list[str] = field(default_factory=list)
     actions: list[str] = field(default_factory=list)
+    project_memory_paths: list[Path] = field(default_factory=list)
     follow_up: FollowUpRequest | None = None
 
 

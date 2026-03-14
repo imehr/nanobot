@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from typer.testing import CliRunner
 
-from nanobot.cli.commands import app
+from nanobot.cli.commands import _render_capture_result, app
 from nanobot.config.schema import Config
 from nanobot.knowledge.service import CaptureResult
 from nanobot.providers.litellm_provider import LiteLLMProvider
@@ -158,6 +158,23 @@ def test_capture_text_command_uses_knowledge_service(tmp_path):
 
     assert result.exit_code == 0
     assert "Queued capture cap-text-1" in result.stdout
+
+
+def test_render_capture_result_prefers_project_memory_path(tmp_path: Path):
+    result = CaptureResult(
+        capture_id="cap-123",
+        status="completed",
+        inbox_item_path=tmp_path / "item",
+        entities=["Work/projects/nanobot"],
+        actions=["saved original", "applied decision"],
+        project_memory_paths=[tmp_path / "Mehr/Projects/nanobot/decisions.md"],
+    )
+
+    with patch("nanobot.cli.commands.console.print") as mock_print:
+        _render_capture_result(result)
+
+    rendered = " ".join(str(call.args[0]) for call in mock_print.call_args_list)
+    assert "Mehr/Projects/nanobot/decisions.md" in rendered
 
 
 def test_agent_command_passes_browser_config(tmp_path: Path):

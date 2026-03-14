@@ -5,6 +5,7 @@ from pathlib import Path
 
 import httpx
 
+from nanobot.knowledge.models import CaptureJob
 from nanobot.knowledge.service import CaptureResult
 
 
@@ -122,3 +123,23 @@ def test_native_inbox_health_and_capture(tmp_path: Path) -> None:
         ]
     finally:
         server.stop()
+
+
+def test_build_job_status_payload_prefers_project_memory_path() -> None:
+    from nanobot.knowledge.native_inbox import build_job_status_payload
+
+    job = CaptureJob(
+        capture_id="cap-123",
+        status="completed",
+        source_channel="mac_app",
+        capture_type="file",
+        inbox_item_path=Path("/tmp/workspace/inbox/cap-123"),
+        canonical_paths=[Path("/tmp/Mehr/Work/projects/nanobot/index.md")],
+        archive_paths=[Path("/tmp/Nanobot Archive/2026/nanobot/cap-123/receipt.png")],
+        project_memory_paths=[Path("/tmp/Mehr/Projects/nanobot/decisions.md")],
+    )
+
+    payload = build_job_status_payload(job)
+
+    assert payload["primary_path"] == "/tmp/Mehr/Projects/nanobot/decisions.md"
+    assert payload["project_memory_paths"] == ["/tmp/Mehr/Projects/nanobot/decisions.md"]

@@ -19,7 +19,9 @@ from nanobot.knowledge.web_inbox import build_capture_response
 
 def build_job_status_payload(job) -> dict[str, object]:
     primary_path = ""
-    if job.canonical_paths:
+    if job.project_memory_paths:
+        primary_path = str(job.project_memory_paths[0])
+    elif job.canonical_paths:
         primary_path = str(job.canonical_paths[0])
     elif job.archive_paths:
         primary_path = str(job.archive_paths[0])
@@ -34,6 +36,7 @@ def build_job_status_payload(job) -> dict[str, object]:
         "primary_path": primary_path,
         "canonical_paths": [str(path) for path in job.canonical_paths],
         "archive_paths": [str(path) for path in job.archive_paths],
+        "project_memory_paths": [str(path) for path in job.project_memory_paths],
         "follow_up": job.follow_up or None,
         "error": job.error or None,
         "queued_at": job.queued_at.isoformat() if job.queued_at else None,
@@ -117,6 +120,7 @@ class NativeCaptureServer:
                                 inbox_item_path=result.inbox_item_path,
                                 entities=result.entities,
                                 actions=result.actions,
+                                project_memory_paths=result.project_memory_paths,
                                 follow_up=result.follow_up.question if result.follow_up else None,
                             ),
                         )

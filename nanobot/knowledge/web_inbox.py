@@ -262,6 +262,7 @@ def build_capture_response(
     inbox_item_path: Path,
     entities: list[str],
     actions: list[str],
+    project_memory_paths: list[Path],
     follow_up: str | None,
 ) -> str:
     """Build the JSON response payload for a capture request."""
@@ -272,6 +273,7 @@ def build_capture_response(
             "inbox_item_path": str(inbox_item_path),
             "entities": entities,
             "actions": actions,
+            "project_memory_paths": [str(path) for path in project_memory_paths],
             "follow_up": follow_up,
         }
     )
@@ -355,6 +357,7 @@ class LocalWebInboxServer:
                                 inbox_item_path=result.inbox_item_path,
                                 entities=result.entities,
                                 actions=result.actions,
+                                project_memory_paths=result.project_memory_paths,
                                 follow_up=result.follow_up.question if result.follow_up else None,
                             ),
                         )

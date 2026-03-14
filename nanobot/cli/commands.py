@@ -360,6 +360,10 @@ def _render_capture_result(result) -> None:
     if getattr(result, "status", "") == "queued":
         console.print(f"Queued capture {result.capture_id}. Staged at {result.inbox_item_path}.")
         return
+    project_memory_paths = getattr(result, "project_memory_paths", [])
+    if project_memory_paths:
+        console.print(f"Captured successfully. Project memory updated at {project_memory_paths[0]}.")
+        return
     entities = ", ".join(result.entities) if result.entities else "unclassified"
     actions = ", ".join(result.actions) if result.actions else "saved"
     console.print(f"Captured to {entities}. Actions: {actions}.")

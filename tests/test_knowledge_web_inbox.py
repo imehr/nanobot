@@ -11,6 +11,7 @@ def test_build_capture_response_includes_follow_up() -> None:
         inbox_item_path=Path("/tmp/item"),
         entities=["personal/bike"],
         actions=["saved original", "updated bike history"],
+        project_memory_paths=[Path("/tmp/Mehr/Projects/nanobot/decisions.md")],
         follow_up="Is this personal or business?",
     )
 
@@ -19,6 +20,7 @@ def test_build_capture_response_includes_follow_up() -> None:
     assert body["capture_id"] == "cap-123"
     assert body["status"] == "queued"
     assert body["entities"] == ["personal/bike"]
+    assert body["project_memory_paths"] == ["/tmp/Mehr/Projects/nanobot/decisions.md"]
     assert body["follow_up"] == "Is this personal or business?"
 
 
