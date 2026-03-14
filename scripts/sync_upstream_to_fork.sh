@@ -73,7 +73,10 @@ ensure_worktree_root() {
 }
 
 verify_command() {
-  PYTHONPATH="$WORKTREE_PATH" "$WORKTREE_PATH/.venv/bin/pytest" \
+  local pytest_bin
+  pytest_bin="$(find_pytest_bin)"
+
+  PYTHONPATH="$WORKTREE_PATH" "$pytest_bin" \
     tests/test_knowledge_config.py \
     tests/test_knowledge_store.py \
     tests/test_knowledge_router.py \
@@ -95,6 +98,23 @@ verify_command() {
     tests/test_commands.py \
     tests/test_channel_plugins.py \
     tests/test_config_migration.py
+}
+
+find_pytest_bin() {
+  local candidate
+
+  for candidate in \
+    "$WORKTREE_PATH/.venv/bin/pytest" \
+    "$REPO_ROOT/.venv/bin/pytest" \
+    "$PRIMARY_REPO_ROOT/.venv/bin/pytest"
+  do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  fail "Could not find a pytest binary in the integration worktree or primary checkout."
 }
 
 cleanup() {
@@ -141,6 +161,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+PRIMARY_REPO_ROOT="$(dirname "$(git -C "$REPO_ROOT" rev-parse --git-common-dir)")"
 WORKTREE_ROOT="$REPO_ROOT/.worktrees"
 [[ -n "$BRANCH_NAME" ]] || BRANCH_NAME="codex/upstream-sync-$(date +%Y%m%d-%H%M%S)"
 [[ "$BRANCH_NAME" == codex/* ]] || fail "Branch name must start with codex/"

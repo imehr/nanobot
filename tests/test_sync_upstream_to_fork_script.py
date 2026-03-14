@@ -87,8 +87,7 @@ def prepare_repo(tmp_path: Path) -> Path:
     git(checkout, "remote", "set-url", "--push", "upstream", "DISABLED")
     git(checkout, "config", "user.name", "Test User")
     git(checkout, "config", "user.email", "test@example.com")
-    write_file(checkout / ".gitignore", ".worktrees/\n")
-    write_file(checkout / ".venv" / "bin" / "pytest", "#!/bin/sh\nexit 0\n", executable=True)
+    write_file(checkout / ".gitignore", ".worktrees/\n.venv/\n")
     write_file(checkout / "README.md", "checkout\n")
     write_file(checkout / "workspace" / "AGENTS.md", "# Workspace\n")
     for test_name in (
@@ -133,6 +132,7 @@ def prepare_repo(tmp_path: Path) -> Path:
     script_target.chmod(0o755)
     commit_all(checkout, "add sync script")
     git(checkout, "push", "origin", "main")
+    write_file(checkout / ".venv" / "bin" / "pytest", "#!/bin/sh\nexit 0\n", executable=True)
     return checkout
 
 
@@ -177,3 +177,22 @@ def test_script_syncs_upstream_branch_and_keeps_worktree_when_requested(tmp_path
 
     origin_refs = git(repo, "ls-remote", "--heads", "origin", "codex/test-sync")
     assert "codex/test-sync" in origin_refs.stdout
+
+
+def test_script_uses_primary_checkout_venv_when_started_from_worktree(tmp_path: Path) -> None:
+    repo = prepare_repo(tmp_path)
+    git(repo, "worktree", "add", str(tmp_path / "feature"), "-b", "codex/from-worktree")
+    worktree_repo = tmp_path / "feature"
+
+    result = run(
+        [
+            "./scripts/sync_upstream_to_fork.sh",
+            "--keep-worktree",
+            "--branch-name",
+            "codex/worktree-sync",
+        ],
+        cwd=worktree_repo,
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    assert "verification passed" in (result.stderr + result.stdout).lower()
