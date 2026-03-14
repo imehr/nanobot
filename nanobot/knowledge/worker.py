@@ -48,11 +48,16 @@ class KnowledgeWorker:
                     artifact_path=artifact_path,
                     capture_id=job.capture_id,
                 )
+                project_memory_paths = self.store.apply_project_memory_actions(
+                    decision.project_name,
+                    decision.project_memory_actions,
+                )
                 return self.store.transition_job(
                     job.capture_id,
                     status="completed",
                     canonical_paths=canonical_paths,
                     archive_paths=archive_paths,
+                    project_memory_paths=project_memory_paths,
                 )
             return self.store.transition_job(
                 job.capture_id,

@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from nanobot.config.schema import KnowledgeConfig
-from nanobot.knowledge.models import CaptureJob, FactUpdate, InboxItem, IntakeDecision
+from nanobot.knowledge.models import CaptureJob, FactUpdate, InboxItem, IntakeDecision, ProjectMemoryAction
 
 
 class KnowledgeStore:
@@ -163,6 +163,7 @@ class KnowledgeStore:
         error: str = "",
         canonical_paths: list[Path] | None = None,
         archive_paths: list[Path] | None = None,
+        project_memory_paths: list[Path] | None = None,
         follow_up: str = "",
     ) -> CaptureJob:
         """Move a job into its next runtime state directory."""
@@ -173,6 +174,7 @@ class KnowledgeStore:
                 "error": error,
                 "canonical_paths": canonical_paths or job.canonical_paths,
                 "archive_paths": archive_paths or job.archive_paths,
+                "project_memory_paths": project_memory_paths or job.project_memory_paths,
                 "follow_up": follow_up or job.follow_up,
             }
         )
@@ -187,7 +189,7 @@ class KnowledgeStore:
     def retract_job(self, capture_id: str) -> CaptureJob:
         """Retract a previously processed job and remove linked outputs."""
         job = self.load_job(capture_id)
-        for path in [*job.canonical_paths, *job.archive_paths]:
+        for path in [*job.canonical_paths, *job.archive_paths, *job.project_memory_paths]:
             self._unlink_file(path)
         return self.transition_job(capture_id, status="retracted")
 
@@ -341,6 +343,28 @@ class KnowledgeStore:
         feature_path = paths["project_dir"] / "features" / f"{slug}.md"
         feature_path.write_text(f"# {title}\n\n{summary.rstrip()}\n", encoding="utf-8")
         return feature_path
+
+    def apply_project_memory_actions(self, project_name: str, actions: list[ProjectMemoryAction]) -> list[Path]:
+        """Write router-requested project-memory summaries into Mehr/Projects."""
+        if not project_name or not actions:
+            return []
+
+        written: list[Path] = []
+        for action in actions:
+            if action.target == "decisions":
+                written.append(self.append_project_memory_decision(project_name, action.summary))
+            elif action.target == "timeline":
+                written.append(self.append_project_memory_timeline(project_name, action.summary))
+            elif action.target == "feature":
+                written.append(
+                    self.write_project_memory_feature(
+                        project_name,
+                        slug=action.slug or self._project_slug(action.title or action.summary[:40]),
+                        title=action.title or "Feature Summary",
+                        summary=action.summary,
+                    )
+                )
+        return written
 
     def _write_profile(self, profile_path: Path, facts: list[FactUpdate]) -> None:
         existing = profile_path.read_text(encoding="utf-8") if profile_path.exists() else ""
