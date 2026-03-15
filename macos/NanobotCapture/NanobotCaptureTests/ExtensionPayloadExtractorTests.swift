@@ -1,5 +1,6 @@
 import AppKit
 import XCTest
+import UniformTypeIdentifiers
 @testable import NanobotCapture
 
 @MainActor
@@ -21,6 +22,78 @@ final class ExtensionPayloadExtractorTests: XCTestCase {
         let payload = try await extractor.extract(from: [provider])
 
         XCTAssertEqual(payload.contentText, "Front tire pressure is 35 psi")
+        XCTAssertNil(payload.fileURL)
+    }
+
+    func testExtractsRTFPayload() async throws {
+        let extractor = ExtensionPayloadExtractor()
+        let text = "Front tire pressure is 35 psi"
+        let rtfData = try NSAttributedString(string: text).data(
+            from: NSRange(location: 0, length: text.count),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
+        )
+        let provider = NSItemProvider()
+        provider.registerDataRepresentation(forTypeIdentifier: UTType.rtf.identifier, visibility: .all) { completion in
+            completion(rtfData, nil)
+            return nil
+        }
+
+        let payload = try await extractor.extract(from: [provider])
+
+        XCTAssertEqual(payload.contentText, text)
+        XCTAssertNil(payload.fileURL)
+    }
+
+    func testExtractsHTMLPayload() async throws {
+        let extractor = ExtensionPayloadExtractor()
+        let htmlData = Data("<p>Front tire pressure is <b>35 psi</b></p>".utf8)
+        let provider = NSItemProvider()
+        provider.registerDataRepresentation(forTypeIdentifier: UTType.html.identifier, visibility: .all) { completion in
+            completion(htmlData, nil)
+            return nil
+        }
+
+        let payload = try await extractor.extract(from: [provider])
+
+        XCTAssertEqual(payload.contentText, "Front tire pressure is 35 psi")
+        XCTAssertNil(payload.fileURL)
+    }
+
+    func testExtractsRTFDPayload() async throws {
+        let extractor = ExtensionPayloadExtractor()
+        let text = "This note came from Notes Send Copy"
+        let rtfdData = try NSAttributedString(string: text).data(
+            from: NSRange(location: 0, length: text.count),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        )
+        let provider = NSItemProvider()
+        provider.registerDataRepresentation(forTypeIdentifier: UTType.rtfd.identifier, visibility: .all) { completion in
+            completion(rtfdData, nil)
+            return nil
+        }
+
+        let payload = try await extractor.extract(from: [provider])
+
+        XCTAssertEqual(payload.contentText, text)
+        XCTAssertNil(payload.fileURL)
+    }
+
+    func testExtractsFlatRTFDPayload() async throws {
+        let extractor = ExtensionPayloadExtractor()
+        let text = "This note came from Notes Send Copy"
+        let rtfdData = try NSAttributedString(string: text).data(
+            from: NSRange(location: 0, length: text.count),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtfd]
+        )
+        let provider = NSItemProvider()
+        provider.registerDataRepresentation(forTypeIdentifier: UTType.flatRTFD.identifier, visibility: .all) { completion in
+            completion(rtfdData, nil)
+            return nil
+        }
+
+        let payload = try await extractor.extract(from: [provider])
+
+        XCTAssertEqual(payload.contentText, text)
         XCTAssertNil(payload.fileURL)
     }
 

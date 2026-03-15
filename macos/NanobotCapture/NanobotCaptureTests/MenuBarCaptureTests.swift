@@ -75,13 +75,14 @@ final class MenuBarCaptureTests: XCTestCase {
 
         let attributes = try XCTUnwrap(extensionManifest["NSExtensionAttributes"] as? [String: Any])
         XCTAssertEqual(attributes["NSExtensionActivationDictionaryVersion"] as? Int, 2)
-        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? [String: Any])
-        XCTAssertEqual(rule["NSExtensionActivationSupportsAttachmentsWithMaxCount"] as? Int, 32)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsText"] as? Bool, true)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int, 8)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsWebPageWithMaxCount"] as? Int, 8)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsImageWithMaxCount"] as? Int, 32)
-        XCTAssertEqual(rule["NSExtensionActivationSupportsFileWithMaxCount"] as? Int, 32)
+        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? String)
+        XCTAssertTrue(rule.contains("public.text"))
+        XCTAssertTrue(rule.contains("public.url"))
+        XCTAssertTrue(rule.contains("public.file-url"))
+        XCTAssertTrue(rule.contains("public.image"))
+        XCTAssertTrue(rule.contains("com.apple.webarchive"))
+        XCTAssertTrue(rule.contains("com.apple.rtfd"))
+        XCTAssertTrue(rule.contains("com.apple.flat-rtfd"))
     }
 
     func testEmbeddedAppBundleDeclaresCaptureAppIcon() {

@@ -14,6 +14,16 @@ enum ExtensionPayloadExtractorError: Error {
 
 @MainActor
 final class ExtensionPayloadExtractor {
+    private let preferredTextTypes: [UTType] = [
+        .rtfd,
+        .flatRTFD,
+        .rtf,
+        .html,
+        .plainText,
+        .utf8PlainText,
+        .text,
+    ]
+
     func extract(from items: [NSExtensionItem]) async throws -> ExtractedExtensionPayload {
         let providers = items.flatMap { $0.attachments ?? [] }
         return try await extract(from: providers)
@@ -31,8 +41,8 @@ final class ExtensionPayloadExtractor {
                 return ExtractedExtensionPayload(contentText: url.absoluteString, fileURL: nil)
             }
 
-            if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
-                let text = try await loadText(from: provider, typeIdentifier: UTType.plainText.identifier)
+            for textType in preferredTextTypes where provider.hasItemConformingToTypeIdentifier(textType.identifier) {
+                let text = try await loadText(from: provider, typeIdentifier: textType.identifier)
                 return ExtractedExtensionPayload(contentText: text, fileURL: nil)
             }
 
@@ -74,14 +84,33 @@ final class ExtensionPayloadExtractor {
                     return
                 }
                 if let text = item as? String {
-                    continuation.resume(returning: text)
+                    if let normalizedText = Self.normalizeText(text, typeIdentifier: typeIdentifier) {
+                        continuation.resume(returning: normalizedText)
+                    } else {
+                        continuation.resume(returning: text)
+                    }
                     return
                 }
                 if let text = item as? NSString {
-                    continuation.resume(returning: text as String)
+                    let stringValue = text as String
+                    if let normalizedText = Self.normalizeText(stringValue, typeIdentifier: typeIdentifier) {
+                        continuation.resume(returning: normalizedText)
+                    } else {
+                        continuation.resume(returning: stringValue)
+                    }
                     return
                 }
-                if let data = item as? Data, let text = String(data: data, encoding: .utf8) {
+                if let attributedText = item as? NSAttributedString {
+                    continuation.resume(returning: attributedText.string)
+                    return
+                }
+                if let data = item as? Data, let text = Self.decodeText(data: data, typeIdentifier: typeIdentifier) {
+                    continuation.resume(returning: text)
+                    return
+                }
+                if let url = item as? URL,
+                   let data = try? Data(contentsOf: url),
+                   let text = Self.decodeText(data: data, typeIdentifier: typeIdentifier) {
                     continuation.resume(returning: text)
                     return
                 }
@@ -135,5 +164,47 @@ final class ExtensionPayloadExtractor {
             .appendingPathExtension(ext)
         try data.write(to: tempURL)
         return tempURL
+    }
+
+    nonisolated private static func normalizeText(_ text: String, typeIdentifier: String) -> String? {
+        guard let data = text.data(using: .utf8) else {
+            return nil
+        }
+        return decodeRichText(data: data, typeIdentifier: typeIdentifier)
+    }
+
+    nonisolated private static func decodeText(data: Data, typeIdentifier: String) -> String? {
+        if let attributedText = decodeRichText(data: data, typeIdentifier: typeIdentifier) {
+            return attributedText
+        }
+
+        return String(data: data, encoding: .utf8)
+            ?? String(data: data, encoding: .utf16)
+            ?? String(data: data, encoding: .unicode)
+    }
+
+    nonisolated private static func decodeRichText(data: Data, typeIdentifier: String) -> String? {
+        let documentType: NSAttributedString.DocumentType?
+        switch typeIdentifier {
+        case UTType.rtfd.identifier, UTType.flatRTFD.identifier:
+            documentType = .rtfd
+        case UTType.rtf.identifier:
+            documentType = .rtf
+        case UTType.html.identifier:
+            documentType = .html
+        default:
+            documentType = nil
+        }
+
+        guard let documentType else {
+            return nil
+        }
+
+        let attributedText = try? NSAttributedString(
+            data: data,
+            options: [.documentType: documentType],
+            documentAttributes: nil
+        )
+        return attributedText?.string.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

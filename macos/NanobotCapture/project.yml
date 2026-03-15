@@ -21,6 +21,7 @@ targets:
     info:
       path: NanobotCapture/Info.plist
       properties:
+        CFBundleIconFile: AppIcon
         CFBundleIconName: AppIcon
     dependencies:
       - target: NanobotCaptureShareExtension
@@ -64,17 +65,21 @@ targets:
       path: NanobotCaptureShareExtension/Info.plist
       properties:
         CFBundleDisplayName: Nanobot Capture
+        CFBundleIconFile: AppIcon
         CFBundleIconName: AppIcon
         NSExtension:
           NSExtensionAttributes:
             NSExtensionActivationDictionaryVersion: 2
-            NSExtensionActivationRule:
-              NSExtensionActivationSupportsAttachmentsWithMaxCount: 32
-              NSExtensionActivationSupportsText: true
-              NSExtensionActivationSupportsWebPageWithMaxCount: 8
-              NSExtensionActivationSupportsWebURLWithMaxCount: 8
-              NSExtensionActivationSupportsImageWithMaxCount: 32
-              NSExtensionActivationSupportsFileWithMaxCount: 32
+            NSExtensionActivationRule: >-
+              SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment,
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.webarchive" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.rtfd" ||
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.flat-rtfd"
+              ).@count > 0).@count > 0
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: NanobotCaptureShareExtension.ShareViewController
     settings:
