@@ -20,6 +20,8 @@ targets:
       - path: NanobotCaptureShareExtension/ExtensionPayloadExtractor.swift
     info:
       path: NanobotCapture/Info.plist
+      properties:
+        CFBundleIconName: AppIcon
     dependencies:
       - target: NanobotCaptureShareExtension
         embed: true
@@ -65,8 +67,11 @@ targets:
         CFBundleIconName: AppIcon
         NSExtension:
           NSExtensionAttributes:
+            NSExtensionActivationDictionaryVersion: 2
             NSExtensionActivationRule:
+              NSExtensionActivationSupportsAttachmentsWithMaxCount: 32
               NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebPageWithMaxCount: 8
               NSExtensionActivationSupportsWebURLWithMaxCount: 8
               NSExtensionActivationSupportsImageWithMaxCount: 32
               NSExtensionActivationSupportsFileWithMaxCount: 32
