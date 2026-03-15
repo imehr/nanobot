@@ -50,7 +50,7 @@ Installed local pieces:
 - watched folder: `~/Drop to Nanobot`
 - `Nanobot Capture` for Web: `http://127.0.0.1:18791/`
 - native app endpoint: `http://127.0.0.1:18792/`
-- native app bundle: `~/Applications/NanobotCapture.app`
+- native app bundle: `/Applications/NanobotCapture.app`
 - Finder Quick Action: `~/Library/Services/Send to Nanobot.workflow`
 - text Service: `~/Library/Services/Send Text to Nanobot.workflow`
 

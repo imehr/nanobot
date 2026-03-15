@@ -36,7 +36,7 @@ This repository is a customized fork for `imehr`, built on top of upstream `HKUD
 - Drop folder: `/Users/mehranmozaffari/Drop to Nanobot`
 - Native capture health: `http://127.0.0.1:18792/health`
 - Local web inbox: `http://127.0.0.1:18791/`
-- Installed app: `/Users/mehranmozaffari/Applications/NanobotCapture.app`
+- Installed app: `/Applications/NanobotCapture.app`
 
 ## Verification Policy
 
