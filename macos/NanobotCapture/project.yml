@@ -81,6 +81,8 @@ targets:
               ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.rtfd" ||
               ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.flat-rtfd"
               ).@count > 0).@count > 0
+            NSExtensionPointName: com.apple.share-services
+            NSExtensionPointVersion: "1.0"
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: NanobotCaptureShareExtension.ShareViewController
     settings:

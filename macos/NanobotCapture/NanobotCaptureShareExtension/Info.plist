@@ -34,6 +34,10 @@
 			<true/>
 			<key>NSExtensionActivationRule</key>
 			<string>SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.webarchive" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.rtfd" || ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.flat-rtfd" ).@count &gt; 0).@count &gt; 0</string>
+			<key>NSExtensionPointName</key>
+			<string>com.apple.share-services</string>
+			<key>NSExtensionPointVersion</key>
+			<string>1.0</string>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
