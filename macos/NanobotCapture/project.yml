@@ -70,6 +70,7 @@ targets:
         NSExtension:
           NSExtensionAttributes:
             NSExtensionActivationDictionaryVersion: 2
+            NSExtensionServiceAllowsToolbarItem: true
             NSExtensionActivationRule: >-
               SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment,
               ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text" ||

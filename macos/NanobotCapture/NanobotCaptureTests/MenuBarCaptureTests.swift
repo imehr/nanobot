@@ -75,6 +75,7 @@ final class MenuBarCaptureTests: XCTestCase {
 
         let attributes = try XCTUnwrap(extensionManifest["NSExtensionAttributes"] as? [String: Any])
         XCTAssertEqual(attributes["NSExtensionActivationDictionaryVersion"] as? Int, 2)
+        XCTAssertEqual(attributes["NSExtensionServiceAllowsToolbarItem"] as? Bool, true)
         let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? String)
         XCTAssertTrue(rule.contains("public.text"))
         XCTAssertTrue(rule.contains("public.url"))
