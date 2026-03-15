@@ -48,10 +48,9 @@ On this Mac, the setup has already been applied for the user account `mehranmoza
 Installed local pieces:
 
 - watched folder: `~/Drop to Nanobot`
-- browser inbox: `http://127.0.0.1:18791/`
+- `Nanobot Capture` for Web: `http://127.0.0.1:18791/`
 - native app endpoint: `http://127.0.0.1:18792/`
 - native app bundle: `~/Applications/NanobotCapture.app`
-- clipboard launcher app: `~/Applications/Send Clipboard to Nanobot.app`
 - Finder Quick Action: `~/Library/Services/Send to Nanobot.workflow`
 - text Service: `~/Library/Services/Send Text to Nanobot.workflow`
 
@@ -98,7 +97,7 @@ Add or merge this:
 
 Notes:
 
-- `localWeb` is for browser/LAN capture.
+- `localWeb` is for the browser-based `Nanobot Capture` app and LAN capture.
 - `nativeCapture` is only for the macOS app and Share extension.
 - Keep `nativeCapture.bind` on `127.0.0.1`.
 - Use a real random token for `nativeCapture.authToken`.
@@ -117,7 +116,7 @@ nanobot gateway
 
 If configured correctly, startup output will include:
 
-- `Local web inbox: http://127.0.0.1:18791/capture`
+- `Nanobot Capture for Web: http://127.0.0.1:18791/`
 - `Native capture endpoint: http://127.0.0.1:18792/capture`
 - `Watched folders: ~/Drop to Nanobot`
 
@@ -302,7 +301,7 @@ Drop files into:
 
 The gateway watcher picks them up and routes them automatically.
 
-### Browser Inbox
+### Nanobot Capture for Web
 
 Open:
 
@@ -310,9 +309,17 @@ Open:
 
 Use this when:
 
-- you want a local web form
+- you want the browser version of the `Nanobot Capture` composer
 - you are on another machine on your LAN
 - you want to upload files without opening the macOS app
+
+Browser behavior now matches the desktop app more closely:
+
+- responsive two-pane composer
+- drag-drop attachments
+- pasted clipboard screenshots/images
+- queue-aware result states
+- recent captures list
 
 ### Mobile / Chat
 
@@ -357,7 +364,7 @@ Native app and Share extension:
 - have no read, list, or browse API
 - cannot query your full knowledge base
 
-Browser/LAN inbox:
+Browser/LAN `Nanobot Capture`:
 
 - uses the separate `localWeb` service on `127.0.0.1:18791`
 - can be exposed to your LAN if you choose, but that is separate from the native app

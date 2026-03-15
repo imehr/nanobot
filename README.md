@@ -218,8 +218,8 @@ nanobot capture clipboard --hint bike
 
 - **Watched folder**
   - Drop screenshots, PDFs, receipts, or other files into a watched folder such as `~/Drop to Nanobot`
-- **Local web inbox**
-  - Send notes or upload a file from Mac shortcuts, browser tools, or other machines on your LAN
+- **Nanobot Capture for Web**
+  - Send notes or upload files from browser tools, Mac shortcuts, or other machines on your LAN
 
 ```bash
 curl -X POST http://127.0.0.1:18791/capture \
@@ -228,7 +228,13 @@ curl -X POST http://127.0.0.1:18791/capture \
 ```
 
 - **Browser UI**
-  - Open `http://127.0.0.1:18791/` for a local capture page with note, hint, multi-file upload, and a human-readable result screen
+  - Open `http://127.0.0.1:18791/` for the local `Nanobot Capture` web app
+  - The browser version mirrors the desktop composer with:
+    - context and hint fields
+    - drag-drop attachments
+    - multi-file upload
+    - pasted clipboard screenshots/images
+    - queue-aware status and recent captures
 
 - **Native macOS app**
   - Build the app in `macos/NanobotCapture/`
@@ -269,7 +275,7 @@ For each captured item, `nanobot` will:
 - add ledger rows when the item is transactional,
 - ask follow-up questions only when ambiguity changes storage or financial treatment.
 
-The local web inbox now supports both JSON text capture and browser-based file upload.
+The local `Nanobot Capture` web app supports JSON capture, browser-based file upload, drag-drop, and pasted clipboard screenshots.
 
 ### Recommended Mac setup
 
@@ -283,7 +289,7 @@ The local web inbox now supports both JSON text capture and browser-based file u
    - the native Nanobot menu bar app
    - the native `Nanobot` Share target from Finder, Safari, Preview, and other supported apps
    - drag-and-drop into the watched folder
-   - the browser inbox at `http://127.0.0.1:18791/`
+   - the `Nanobot Capture` web app at `http://127.0.0.1:18791/`
 
 ## 💬 Chat Apps
 
