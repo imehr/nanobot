@@ -477,9 +477,9 @@ class AgentLoop:
             follow_up = next((result.follow_up for result in results if result.follow_up is not None), None)
             capture_ids = [result.capture_id for result in results if getattr(result, "capture_id", "")]
             content = follow_up.question if follow_up is not None else (
-                f"Queued for processing. Capture IDs: {', '.join(capture_ids)}."
+                f"Nanobot Capture queued. Capture IDs: {', '.join(capture_ids)}."
                 if capture_ids
-                else "Queued for processing."
+                else "Nanobot Capture queued."
             )
             return OutboundMessage(
                 channel=msg.channel,

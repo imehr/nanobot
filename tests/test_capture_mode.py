@@ -54,7 +54,7 @@ async def test_capture_mode_routes_to_knowledge_service(tmp_path) -> None:
     response = await loop._process_message(msg)
 
     assert response is not None
-    assert "Queued for processing." in response.content
+    assert "Nanobot Capture queued." in response.content
     assert "cap-text-1" in response.content
 
 
@@ -102,5 +102,5 @@ async def test_capture_command_routes_message_without_metadata(tmp_path) -> None
     response = await loop._process_message(msg)
 
     assert response is not None
-    assert "Queued for processing." in response.content
+    assert "Nanobot Capture queued." in response.content
     assert service.last_text == "Bike invoice for regular service centre"

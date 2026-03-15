@@ -11,6 +11,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from python_multipart import parse_form
 
@@ -27,6 +28,12 @@ def build_capture_icon_markup() -> str:
   <path d="M24 45h10" stroke="#C92F2F" stroke-width="3" stroke-linecap="round" opacity="0.66"/>
 </svg>
 """.strip()
+
+
+def build_capture_icon_data_uri() -> str:
+    """Return the shared icon as an SVG data URI for favicon use."""
+    icon_svg = build_capture_icon_markup().replace(' class="capture-mark"', "")
+    return f"data:image/svg+xml,{quote(icon_svg)}"
 
 
 def build_job_status_payload(job) -> dict[str, object]:
@@ -58,6 +65,7 @@ def build_job_status_payload(job) -> dict[str, object]:
 def build_inbox_page() -> str:
     """Build the desktop-aligned browser UI for local capture."""
     icon = build_capture_icon_markup()
+    favicon = build_capture_icon_data_uri()
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -65,6 +73,7 @@ def build_inbox_page() -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nanobot Capture</title>
   <meta name="application-name" content="Nanobot Capture">
+  <link rel="icon" href="{favicon}">
   <style>
     :root {{
       color-scheme: light;

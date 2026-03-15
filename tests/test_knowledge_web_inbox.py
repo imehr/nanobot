@@ -61,6 +61,8 @@ def test_build_inbox_page_includes_upload_form() -> None:
     assert "attachment-dropzone" in page
     assert "captureStatus" in page
     assert "captureRecentList" in page
+    assert 'rel="icon"' in page
+    assert "data:image/svg+xml" in page
 
 
 def test_build_result_page_shows_entities_and_actions() -> None:
