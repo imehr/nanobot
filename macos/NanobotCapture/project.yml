@@ -71,16 +71,7 @@ targets:
           NSExtensionAttributes:
             NSExtensionActivationDictionaryVersion: 2
             NSExtensionServiceAllowsToolbarItem: true
-            NSExtensionActivationRule: >-
-              SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment,
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.text" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.file-url" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.webarchive" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.rtfd" ||
-              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.apple.flat-rtfd"
-              ).@count > 0).@count > 0
+            NSExtensionActivationRule: TRUEPREDICATE
             NSExtensionPointName: com.apple.share-services
             NSExtensionPointVersion: "1.0"
           NSExtensionPointIdentifier: com.apple.share-services

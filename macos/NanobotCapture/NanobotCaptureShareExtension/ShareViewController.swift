@@ -5,6 +5,8 @@ final class ShareViewController: NSViewController {
     private let model = ShareExtensionModel()
 
     override func loadView() {
+        preferredContentSize = NSSize(width: 540, height: 380)
+
         self.view = NSHostingView(
             rootView: ShareView(
                 model: model,
@@ -16,6 +18,7 @@ final class ShareViewController: NSViewController {
                 }
             )
         )
+        view.frame = NSRect(origin: .zero, size: preferredContentSize)
     }
 
     override func viewDidLoad() {

@@ -79,13 +79,7 @@ final class MenuBarCaptureTests: XCTestCase {
         XCTAssertEqual(attributes["NSExtensionPointVersion"] as? String, "1.0")
         XCTAssertEqual(attributes["NSExtensionServiceAllowsToolbarItem"] as? Bool, true)
         let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? String)
-        XCTAssertTrue(rule.contains("public.text"))
-        XCTAssertTrue(rule.contains("public.url"))
-        XCTAssertTrue(rule.contains("public.file-url"))
-        XCTAssertTrue(rule.contains("public.image"))
-        XCTAssertTrue(rule.contains("com.apple.webarchive"))
-        XCTAssertTrue(rule.contains("com.apple.rtfd"))
-        XCTAssertTrue(rule.contains("com.apple.flat-rtfd"))
+        XCTAssertEqual(rule, "TRUEPREDICATE")
     }
 
     func testEmbeddedAppBundleDeclaresCaptureAppIcon() {
