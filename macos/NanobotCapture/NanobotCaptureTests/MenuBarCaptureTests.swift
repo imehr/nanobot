@@ -70,9 +70,15 @@ final class MenuBarCaptureTests: XCTestCase {
             "NanobotCaptureShareExtension.ShareViewController"
         )
 
+        XCTAssertEqual(extensionBundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "Nanobot Capture")
+        XCTAssertEqual(extensionBundle.object(forInfoDictionaryKey: "CFBundleIconName") as? String, "AppIcon")
+
         let attributes = try XCTUnwrap(extensionManifest["NSExtensionAttributes"] as? [String: Any])
-        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? String)
-        XCTAssertEqual(rule, "TRUEPREDICATE")
+        let rule = try XCTUnwrap(attributes["NSExtensionActivationRule"] as? [String: Any])
+        XCTAssertEqual(rule["NSExtensionActivationSupportsText"] as? Bool, true)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsWebURLWithMaxCount"] as? Int, 8)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsImageWithMaxCount"] as? Int, 32)
+        XCTAssertEqual(rule["NSExtensionActivationSupportsFileWithMaxCount"] as? Int, 32)
     }
 
     func testEmbeddedAppAndShareExtensionContainSandboxEntitlements() throws {

@@ -61,9 +61,15 @@ targets:
     info:
       path: NanobotCaptureShareExtension/Info.plist
       properties:
+        CFBundleDisplayName: Nanobot Capture
+        CFBundleIconName: AppIcon
         NSExtension:
           NSExtensionAttributes:
-            NSExtensionActivationRule: TRUEPREDICATE
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 8
+              NSExtensionActivationSupportsImageWithMaxCount: 32
+              NSExtensionActivationSupportsFileWithMaxCount: 32
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: NanobotCaptureShareExtension.ShareViewController
     settings:
