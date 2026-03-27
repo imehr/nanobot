@@ -6,7 +6,13 @@ from nanobot.bus.queue import MessageBus
 from nanobot.knowledge.service import CaptureResult
 
 
+class DummyGeneration:
+    max_tokens = 4096
+
+
 class DummyProvider:
+    generation = DummyGeneration()
+
     def get_default_model(self):
         return "test-model"
 
