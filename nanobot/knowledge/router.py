@@ -106,7 +106,19 @@ class KnowledgeRouter:
         )
 
         if not getattr(response, "has_tool_calls", False):
-            return IntakeDecision()
+            finish = getattr(response, "finish_reason", "unknown")
+            content = getattr(response, "content", "") or ""
+            import logging
+            logging.getLogger(__name__).warning(
+                "KnowledgeRouter: no tool call from model (finish_reason=%s). "
+                "Content preview: %.200s",
+                finish,
+                content,
+            )
+            raise RuntimeError(
+                f"KnowledgeRouter: model did not call save_intake_decision "
+                f"(finish_reason={finish})"
+            )
 
         args = response.tool_calls[0].arguments
         return IntakeDecision.model_validate(args)

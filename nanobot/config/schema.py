@@ -98,6 +98,7 @@ class ProvidersConfig(Base):
     vllm: ProviderConfig = Field(default_factory=ProviderConfig)
     ollama: ProviderConfig = Field(default_factory=ProviderConfig)  # Ollama local models
     ovms: ProviderConfig = Field(default_factory=ProviderConfig)  # OpenVINO Model Server (OVMS)
+    mlx_vlm: ProviderConfig = Field(default_factory=ProviderConfig)  # MLX-VLM local server (Apple Silicon, TurboQuant)
     gemini: ProviderConfig = Field(default_factory=ProviderConfig)
     moonshot: ProviderConfig = Field(default_factory=ProviderConfig)
     minimax: ProviderConfig = Field(default_factory=ProviderConfig)

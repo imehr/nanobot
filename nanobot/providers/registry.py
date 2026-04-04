@@ -317,6 +317,20 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         detect_by_base_keyword="11434",
         default_api_base="http://localhost:11434/v1",
     ),
+    # MLX-VLM (Apple Silicon, OpenAI-compatible server via `mlx_vlm.server`)
+    # Supports TurboQuant KV-cache compression — configure when starting the server:
+    #   mlx_vlm.server --model mlx-community/gemma-4-26B-A4B-it \
+    #                  --kv-bits 3.5 --kv-quant-scheme turboquant --port 8080
+    ProviderSpec(
+        name="mlx_vlm",
+        keywords=("mlx-community", "mlx-vlm", "mlx_vlm"),
+        env_key="",
+        display_name="MLX-VLM (Apple Silicon)",
+        backend="openai_compat",
+        is_local=True,
+        detect_by_base_keyword="8080",
+        default_api_base="http://localhost:8080/v1",
+    ),
     # === OpenVINO Model Server (direct, local, OpenAI-compatible at /v3) ===
     ProviderSpec(
         name="ovms",
