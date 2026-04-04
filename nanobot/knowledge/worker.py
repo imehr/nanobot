@@ -41,7 +41,7 @@ class KnowledgeWorker:
         artifact_path = self._first_attachment(job.inbox_item_path)
 
         try:
-            decision = await self.router.route(item, current_memory=self.memory.read_long_term())
+            decision = await self.router.route(item, current_memory=self.memory.read_memory())
             if decision.follow_up is None:
                 canonical_paths, archive_paths = self.store.apply_decision(
                     decision,

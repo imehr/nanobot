@@ -225,10 +225,15 @@ class AgentLoop:
         self._extra_hooks: list[AgentHook] = hooks or []
 
         self.context = ContextBuilder(workspace, timezone=timezone)
-        self.knowledge_service = knowledge_service or KnowledgeIntakeService(
-            workspace,
-            router=KnowledgeRouter(provider=provider, model=self.model),
-        )
+        if knowledge_service is not None:
+            self.knowledge_service: KnowledgeIntakeService | None = knowledge_service
+        elif isinstance(workspace, (str, Path)):
+            self.knowledge_service = KnowledgeIntakeService(
+                workspace,
+                router=KnowledgeRouter(provider=provider, model=self.model),
+            )
+        else:
+            self.knowledge_service = None
         self.sessions = session_manager or SessionManager(workspace)
         self.tools = ToolRegistry()
         self.runner = AgentRunner(provider)
@@ -606,7 +611,7 @@ class AgentLoop:
             capture_mode = True
             capture_text = msg.content.strip()[len("/capture"):].strip()
 
-        if capture_mode:
+        if capture_mode and self.knowledge_service is not None:
             user_hint = msg.metadata.get("user_hint", "")
             results = []
             if msg.media:
