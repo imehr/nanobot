@@ -95,9 +95,9 @@ verify_command() {
     tests/test_capture_mode.py \
     tests/test_voice_channel.py \
     tests/test_agent_browser_tool.py \
-    tests/test_commands.py \
-    tests/test_channel_plugins.py \
-    tests/test_config_migration.py
+    tests/cli/test_commands.py \
+    tests/channels/test_channel_plugins.py \
+    tests/config/test_config_migration.py
 }
 
 find_pytest_bin() {
