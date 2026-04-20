@@ -24,6 +24,7 @@
 		683EEDE34CB990656D3F9792 /* ShareExtensionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */; };
 		71BFFF483F0D6639558B0030 /* ShareExtensionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93301C92F3110AE5749E9972 /* ShareExtensionModel.swift */; };
 		8274753669259F3E74EDE140 /* CaptureAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88DC6AE52C9D14350B204BB5 /* CaptureAttachment.swift */; };
+		8846919055F94D6755C9855E /* CaptureYouTubeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0796A68D9F9AD2A5410198A /* CaptureYouTubeDetector.swift */; };
 		8E2FFAE681622FBC7252E032 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F98504255BCC72B0B7129C /* AppState.swift */; };
 		9D7D5DB369889B39DA243FD4 /* ExtensionPayloadExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */; };
 		9FB54441C2B8C283D16A0A86 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */; };
@@ -90,6 +91,7 @@
 		ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapturePayload.swift; sourceTree = "<group>"; };
 		B25B741A3EE910E6C49DCAB3 /* ExtensionPayloadExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPayloadExtractorTests.swift; sourceTree = "<group>"; };
 		BF3717DE80198043E355664D /* NanobotCaptureShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NanobotCaptureShareExtension.entitlements; sourceTree = "<group>"; };
+		C0796A68D9F9AD2A5410198A /* CaptureYouTubeDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureYouTubeDetector.swift; sourceTree = "<group>"; };
 		CE51483F8F98C1A5C571577B /* MenuBarCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCaptureView.swift; sourceTree = "<group>"; };
 		DB199F95AE9DAD6F4C79DE01 /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureWindowView.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 				85D9325EBD589D9E5203620F /* CaptureAttachmentPanel.swift */,
 				A1A49DA4B128AF1466F46026 /* CaptureContextEditor.swift */,
 				DC0723C83C973244DE3DABFB /* CaptureWindowView.swift */,
+				C0796A68D9F9AD2A5410198A /* CaptureYouTubeDetector.swift */,
 				92D0B9D956E0558978EA7775 /* FileDropZone.swift */,
 			);
 			path = UI;
@@ -327,6 +330,7 @@
 				55A08CAAFF378949F2A790D9 /* CaptureContextEditor.swift in Sources */,
 				356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */,
 				AC66F3B7A907BA8410CDB7F8 /* CaptureWindowView.swift in Sources */,
+				8846919055F94D6755C9855E /* CaptureYouTubeDetector.swift in Sources */,
 				C9F2151A49871802E290CA8D /* ContentView.swift in Sources */,
 				24307CC7D8E87619275FA349 /* ExtensionPayloadExtractor.swift in Sources */,
 				BC0B22E9E8369083BCB63303 /* FileDropZone.swift in Sources */,

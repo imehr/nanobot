@@ -111,6 +111,13 @@ struct CaptureWindowView: View {
                 )
             }
 
+            if let detectedURL = YouTubeURLDetector.firstURL(in: appState.captureWindow.note) {
+                CaptureYouTubeTopicBanner(
+                    detectedURL: detectedURL,
+                    hint: $appState.captureWindow.hint
+                )
+            }
+
             VStack(alignment: .leading, spacing: 10) {
                 Text("Hint")
                     .font(.headline)
