@@ -6,8 +6,12 @@ import asyncio
 import io
 import json
 import os
+import re
+import sys
 import tempfile
 import threading
+import urllib.error
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -15,6 +19,52 @@ from typing import Any
 from python_multipart import parse_form
 
 from nanobot.knowledge.web_inbox import build_capture_response
+
+
+_YOUTUBE_URL_RE = re.compile(
+    r"https?://(?:www\.)?(?:m\.)?(?:youtube\.com/(?:watch\?v=|shorts/|live/|embed/)[A-Za-z0-9_-]{11}"
+    r"(?:[?&#][^\s]*)?|youtu\.be/[A-Za-z0-9_-]{11}(?:[?&#][^\s]*)?)",
+    re.IGNORECASE,
+)
+
+
+def _maybe_forward_video_url(content_text: str, user_hint: str) -> None:
+    """If content contains a YouTube URL and NANOBOT_VIDEO_FORWARD_URL is set,
+    forward the URL to the configured research harness video queue.
+
+    Non-blocking in spirit — any exception is swallowed and logged to stderr
+    so it never breaks the native capture flow.
+    """
+    target = os.environ.get("NANOBOT_VIDEO_FORWARD_URL")
+    if not target:
+        return
+    match = _YOUTUBE_URL_RE.search(content_text or "")
+    if not match:
+        return
+    try:
+        url = match.group(0)
+        payload = json.dumps(
+            {
+                "url": url,
+                "topicHint": (user_hint or None),
+                "note": f"via nanobot-native-capture: {user_hint or ''}".strip(),
+                "source": "nanobot-native-capture",
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(target, data=payload, method="POST")
+        request.add_header("Content-Type", "application/json")
+        token = os.environ.get("NANOBOT_VIDEO_FORWARD_TOKEN")
+        if token:
+            request.add_header("Authorization", f"Bearer {token}")
+        with urllib.request.urlopen(request, timeout=5) as resp:
+            status = resp.status
+            if status >= 300:
+                print(
+                    f"[nanobot.native_inbox] video forward returned HTTP {status}",
+                    file=sys.stderr,
+                )
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
+        print(f"[nanobot.native_inbox] video forward failed: {exc!r}", file=sys.stderr)
 
 
 def build_job_status_payload(job) -> dict[str, object]:
@@ -155,6 +205,7 @@ class NativeCaptureServer:
                 user_hint = str(payload.get("user_hint", "")).strip()
                 if not content_text:
                     raise ValueError("content_text_required")
+                _maybe_forward_video_url(content_text, user_hint)
                 return asyncio.run(
                     intake_service.capture_text(
                         content_text,
@@ -191,6 +242,7 @@ class NativeCaptureServer:
                 )
                 content_text = fields.get("content_text", "").strip()
                 user_hint = fields.get("user_hint", "").strip()
+                _maybe_forward_video_url(content_text, user_hint)
                 if not uploaded:
                     raise ValueError("file_required")
                 path = Path(uploaded[0])

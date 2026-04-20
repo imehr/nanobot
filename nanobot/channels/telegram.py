@@ -3,13 +3,58 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import os
 import re
 import time
 import unicodedata
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from typing import Any, Literal
 
 from loguru import logger
+
+
+_YOUTUBE_URL_RE = re.compile(
+    r"https?://(?:www\.)?(?:m\.)?(?:youtube\.com/(?:watch\?v=|shorts/|live/|embed/)[A-Za-z0-9_-]{11}"
+    r"(?:[?&#][^\s]*)?|youtu\.be/[A-Za-z0-9_-]{11}(?:[?&#][^\s]*)?)",
+    re.IGNORECASE,
+)
+
+
+def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> str | None:
+    """If message text contains a YouTube URL and NANOBOT_VIDEO_FORWARD_URL is
+    set, POST the URL to the configured research-harness video queue. Returns
+    the URL it forwarded, or None. Swallows all exceptions."""
+    target = os.environ.get("NANOBOT_VIDEO_FORWARD_URL")
+    if not target:
+        return None
+    match = _YOUTUBE_URL_RE.search(text or "")
+    if not match:
+        return None
+    try:
+        url = match.group(0)
+        payload = json.dumps(
+            {
+                "url": url,
+                "topicHint": None,
+                "note": f"via telegram: {sender_id or ''}".strip(),
+                "source": "nanobot-telegram",
+            }
+        ).encode("utf-8")
+        req = urllib.request.Request(target, data=payload, method="POST")
+        req.add_header("Content-Type", "application/json")
+        tok = os.environ.get("NANOBOT_VIDEO_FORWARD_TOKEN")
+        if tok:
+            req.add_header("Authorization", f"Bearer {tok}")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status >= 300:
+                logger.warning("video forward returned HTTP {}", resp.status)
+        return url
+    except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
+        logger.warning("video forward failed: {!r}", exc)
+        return None
 from pydantic import Field
 from telegram import BotCommand, ReactionTypeEmoji, ReplyParameters, Update
 from telegram.error import BadRequest, NetworkError, TimedOut
@@ -917,6 +962,20 @@ class TelegramChannel(BaseChannel):
             if tag:
                 content_parts.insert(0, tag)
         content = "\n".join(content_parts) if content_parts else "[empty message]"
+
+        # Video research shortcut: if the message contains a YouTube URL, forward
+        # it to the smaug research harness queue. This is fire-and-forget —
+        # the message still flows through to the agent for a response.
+        forwarded_url = _maybe_forward_video_url_from_telegram(content, sender_id)
+        if forwarded_url:
+            logger.info("Forwarded YouTube URL to video queue: {}", forwarded_url)
+            try:
+                await message.reply_text(
+                    f"🎬 Queued for video research: {forwarded_url}\n"
+                    "Frames + transcript will be analyzed on the next hourly run."
+                )
+            except Exception as exc:  # noqa: BLE001 — reply is optional
+                logger.debug("Telegram reply failed: {!r}", exc)
 
         logger.debug("Telegram message from {}: {}...", sender_id, content[:50])
 
