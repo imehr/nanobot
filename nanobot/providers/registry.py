@@ -339,8 +339,9 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
     ),
     # MLX-VLM (Apple Silicon, OpenAI-compatible server via `mlx_vlm.server`)
     # Supports TurboQuant KV-cache compression — configure when starting the server:
-    #   mlx_vlm.server --model mlx-community/gemma-4-26B-A4B-it \
-    #                  --kv-bits 3.5 --kv-quant-scheme turboquant --port 8080
+    #   mlx_vlm.server --model mlx-community/gemma-4-e4b-it-8bit \
+    #                  --kv-bits 3.5 --kv-quant-scheme turboquant --port 8081
+    # NOTE: use port 8081, not 8080 — OpenClaw gateway occupies 8080
     ProviderSpec(
         name="mlx_vlm",
         keywords=("mlx-community", "mlx-vlm", "mlx_vlm"),
@@ -348,8 +349,8 @@ PROVIDERS: tuple[ProviderSpec, ...] = (
         display_name="MLX-VLM (Apple Silicon)",
         backend="openai_compat",
         is_local=True,
-        detect_by_base_keyword="8080",
-        default_api_base="http://localhost:8080/v1",
+        detect_by_base_keyword="8081",
+        default_api_base="http://localhost:8081/v1",
     ),
     # LM Studio (local, OpenAI-compatible)
     ProviderSpec(

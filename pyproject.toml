@@ -144,6 +144,11 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "ollama: requires Ollama server running with gemma4 model",
+    "mlx: requires MLX-VLM server running on port 8081",
+    "live: any test requiring a live model server",
+]
 
 [tool.coverage.run]
 source = ["nanobot"]
