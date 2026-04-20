@@ -145,6 +145,66 @@ def _uses_openrouter_attribution(spec: "ProviderSpec | None", api_base: str | No
     return bool(api_base and "openrouter" in api_base.lower())
 
 
+def _redact_auth_header(value: Any) -> str:
+    """Format an Authorization header value for logging without leaking the key."""
+    if not isinstance(value, str) or not value:
+        return "<missing>"
+    token = value
+    if token.lower().startswith("bearer "):
+        token = token[7:]
+    prefix_parts = token.split("-")[:3]
+    prefix = "-".join(prefix_parts) + ("-" if len(prefix_parts) >= 3 else "")
+    return f"Bearer <len={len(token)} prefix={prefix}>"
+
+
+def _debug_log_request(
+    *,
+    api_base: str | None,
+    model_name: str,
+    has_tools: bool,
+    tool_choice: Any,
+    default_headers: dict[str, str] | None,
+    api_key: str | None,
+    endpoint: str,
+    kwargs_preview: dict[str, Any] | None = None,
+) -> None:
+    """Emit a one-line request debug log when NANOBOT_PROVIDER_DEBUG=1.
+
+    Redacts the Authorization value. Logs resolved base_url, model, tool
+    presence, and the full header dict (with Authorization redacted). This is
+    gated on an env var so default production behaviour is unchanged.
+    """
+    if os.environ.get("NANOBOT_PROVIDER_DEBUG") != "1":
+        return
+    # Build a sanitized header view without mutating caller state.
+    sanitized: dict[str, Any] = {}
+    if default_headers:
+        for k, v in default_headers.items():
+            if k.lower() == "authorization":
+                sanitized[k] = _redact_auth_header(v)
+            else:
+                sanitized[k] = v
+    # The AsyncOpenAI SDK appends Authorization itself from api_key; represent it.
+    sanitized.setdefault(
+        "Authorization",
+        _redact_auth_header(f"Bearer {api_key}" if api_key else ""),
+    )
+    preview_keys = (
+        sorted(kwargs_preview.keys()) if isinstance(kwargs_preview, dict) else []
+    )
+    logger.info(
+        "provider-debug endpoint={} base_url={} model={} has_tools={} "
+        "tool_choice={} headers={} body_keys={}",
+        endpoint,
+        api_base,
+        model_name,
+        has_tools,
+        tool_choice,
+        sanitized,
+        preview_keys,
+    )
+
+
 _RESPONSES_FAILURE_THRESHOLD = 3
 _RESPONSES_PROBE_INTERVAL_S = 300  # 5 minutes
 
@@ -198,6 +258,8 @@ class OpenAICompatProvider(LLMProvider):
         if extra_headers:
             default_headers.update(extra_headers)
 
+        self._default_headers = dict(default_headers)
+        self._debug_api_key = api_key
         self._client = AsyncOpenAI(
             api_key=api_key or "no-key",
             base_url=effective_base,
@@ -966,6 +1028,16 @@ class OpenAICompatProvider(LLMProvider):
                         messages, tools, model, max_tokens, temperature,
                         reasoning_effort, tool_choice,
                     )
+                    _debug_log_request(
+                        api_base=self._effective_base,
+                        model_name=str(body.get("model")),
+                        has_tools=bool(body.get("tools")),
+                        tool_choice=body.get("tool_choice"),
+                        default_headers=self._default_headers,
+                        api_key=self._debug_api_key,
+                        endpoint="responses.create",
+                        kwargs_preview=body,
+                    )
                     result = parse_response_output(await self._client.responses.create(**body))
                     self._record_responses_success(model, reasoning_effort)
                     return result
@@ -977,6 +1049,16 @@ class OpenAICompatProvider(LLMProvider):
             kwargs = self._build_kwargs(
                 messages, tools, model, max_tokens, temperature,
                 reasoning_effort, tool_choice,
+            )
+            _debug_log_request(
+                api_base=self._effective_base,
+                model_name=str(kwargs.get("model")),
+                has_tools=bool(kwargs.get("tools")),
+                tool_choice=kwargs.get("tool_choice"),
+                default_headers=self._default_headers,
+                api_key=self._debug_api_key,
+                endpoint="chat.completions.create",
+                kwargs_preview=kwargs,
             )
             return self._parse(await self._client.chat.completions.create(**kwargs))
         except Exception as e:
