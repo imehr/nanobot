@@ -48,9 +48,13 @@ _ALNUM = string.ascii_letters + string.digits
 _STANDARD_TC_KEYS = frozenset({"id", "type", "index", "function"})
 _STANDARD_FN_KEYS = frozenset({"name", "arguments"})
 _DEFAULT_OPENROUTER_HEADERS = {
+    # Attribution headers OpenRouter documents at
+    # https://openrouter.ai/docs/app-attribution — HTTP-Referer + X-Title.
+    # Prior nanobot versions used X-OpenRouter-Title / X-OpenRouter-Categories,
+    # which are nanobot-invented names OR silently ignores; renamed to the
+    # documented field so the attribution actually registers.
     "HTTP-Referer": "https://github.com/HKUDS/nanobot",
-    "X-OpenRouter-Title": "nanobot",
-    "X-OpenRouter-Categories": "cli-agent,personal-agent",
+    "X-Title": "nanobot",
 }
 _KIMI_THINKING_MODELS: frozenset[str] = frozenset({
     "kimi-k2.5",
@@ -260,11 +264,16 @@ class OpenAICompatProvider(LLMProvider):
 
         self._default_headers = dict(default_headers)
         self._debug_api_key = api_key
+        # Gateway providers (OpenRouter etc.) proxy to a rotating set of upstream
+        # backends. Transient 4xx/5xx and connection resets are normal; let the
+        # SDK retry twice so one flaky backend doesn't kill a whole capture.
+        # Direct providers keep max_retries=0 to preserve existing behaviour.
+        gateway_retries = 2 if (spec and spec.is_gateway) else 0
         self._client = AsyncOpenAI(
             api_key=api_key or "no-key",
             base_url=effective_base,
             default_headers=default_headers,
-            max_retries=0,
+            max_retries=gateway_retries,
         )
 
         # Responses API circuit breaker: skip after repeated failures,
@@ -482,6 +491,18 @@ class OpenAICompatProvider(LLMProvider):
         if tools:
             kwargs["tools"] = tools
             kwargs["tool_choice"] = tool_choice or "auto"
+
+        # OpenRouter-specific: allow fallback to alternate upstream backends
+        # when the primary backend for the model is transiently unavailable.
+        # OR returns a 404 "model not found" when a single backend is down;
+        # allow_fallbacks=True lets OR route to any other backend that serves
+        # the same slug. Combined with client-level max_retries=2 (set on
+        # gateway providers at construction) this handles the common transient
+        # failure modes without changing the semantics for healthy calls.
+        if spec and spec.name == "openrouter":
+            extra_body = kwargs.setdefault("extra_body", {})
+            provider_opts = extra_body.setdefault("provider", {})
+            provider_opts.setdefault("allow_fallbacks", True)
 
         return kwargs
 

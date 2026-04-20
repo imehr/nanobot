@@ -133,8 +133,7 @@ def test_openrouter_sets_default_attribution_headers() -> None:
 
     headers = MockClient.call_args.kwargs["default_headers"]
     assert headers["HTTP-Referer"] == "https://github.com/HKUDS/nanobot"
-    assert headers["X-OpenRouter-Title"] == "nanobot"
-    assert headers["X-OpenRouter-Categories"] == "cli-agent,personal-agent"
+    assert headers["X-Title"] == "nanobot"
     assert "x-session-affinity" in headers
 
 
@@ -147,7 +146,7 @@ def test_openrouter_user_headers_override_default_attribution() -> None:
             default_model="anthropic/claude-sonnet-4-5",
             extra_headers={
                 "HTTP-Referer": "https://nanobot.ai",
-                "X-OpenRouter-Title": "Nanobot Pro",
+                "X-Title": "Nanobot Pro",
                 "X-Custom-App": "enabled",
             },
             spec=spec,
@@ -155,8 +154,7 @@ def test_openrouter_user_headers_override_default_attribution() -> None:
 
     headers = MockClient.call_args.kwargs["default_headers"]
     assert headers["HTTP-Referer"] == "https://nanobot.ai"
-    assert headers["X-OpenRouter-Title"] == "Nanobot Pro"
-    assert headers["X-OpenRouter-Categories"] == "cli-agent,personal-agent"
+    assert headers["X-Title"] == "Nanobot Pro"
     assert headers["X-Custom-App"] == "enabled"
 
 
@@ -782,12 +780,19 @@ def test_kimi_k25_no_extra_body_when_reasoning_effort_none() -> None:
 def test_kimi_k25_thinking_enabled_with_openrouter_prefix() -> None:
     """OpenRouter-style model names like moonshotai/kimi-k2.5 must trigger thinking."""
     kw = _build_kwargs_for("openrouter", "moonshotai/kimi-k2.5", reasoning_effort="medium")
-    assert kw.get("extra_body") == {"thinking": {"type": "enabled"}}
+    # OpenRouter always injects provider.allow_fallbacks=True alongside any
+    # model-specific extras. Assert both are present.
+    assert kw.get("extra_body") == {
+        "thinking": {"type": "enabled"},
+        "provider": {"allow_fallbacks": True},
+    }
 
 def test_kimi_k25_thinking_disabled_with_openrouter_prefix() -> None:
     """OpenRouter names must NOT trigger thinking without reasoning_effort."""
     kw = _build_kwargs_for("openrouter", "moonshotai/kimi-k2.5", reasoning_effort=None)
-    assert "extra_body" not in kw
+    # extra_body still carries provider.allow_fallbacks for OpenRouter even
+    # when no model-specific extras apply.
+    assert kw.get("extra_body") == {"provider": {"allow_fallbacks": True}}
 
 
 def test_kimi_k26_code_preview_thinking_enabled() -> None:
