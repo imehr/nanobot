@@ -18,6 +18,7 @@
 		356E8AD4B7552602340BA055 /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
 		3BC557391C67B2323A6B14DB /* MenuBarCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F96DFBF78909BBD25F6355E6 /* MenuBarCaptureTests.swift */; };
 		46A6137352D2E7638AC596D8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB2D7ECBE95DFCEA79F1E9DB /* ShareViewController.swift */; };
+		4E58C942FA7E37FD9F33F60C /* CaptureYouTubeDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0796A68D9F9AD2A5410198A /* CaptureYouTubeDetector.swift */; };
 		546F8A20F0ABBCF6382A800C /* CaptureAttachmentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85D9325EBD589D9E5203620F /* CaptureAttachmentPanel.swift */; };
 		55A08CAAFF378949F2A790D9 /* CaptureContextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A49DA4B128AF1466F46026 /* CaptureContextEditor.swift */; };
 		60ECB3F4B47479A04C97609D /* CapturePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC9EDD9C6FB4129DD1FB741 /* CapturePayload.swift */; };
@@ -310,6 +311,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				60ECB3F4B47479A04C97609D /* CapturePayload.swift in Sources */,
+				4E58C942FA7E37FD9F33F60C /* CaptureYouTubeDetector.swift in Sources */,
 				28B3483233488F3C288AB4BB /* ExtensionPayloadExtractor.swift in Sources */,
 				0F732FB2E958C888A7898814 /* KeychainStore.swift in Sources */,
 				BAE687E86E106BE857873ECF /* NativeCaptureClient.swift in Sources */,

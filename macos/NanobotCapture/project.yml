@@ -58,6 +58,7 @@ targets:
     platform: macOS
     sources:
       - path: NanobotCapture/Client
+      - path: NanobotCapture/UI/CaptureYouTubeDetector.swift
       - path: NanobotCaptureShareExtension
         excludes:
           - Info.plist

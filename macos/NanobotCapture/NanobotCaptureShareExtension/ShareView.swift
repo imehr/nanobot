@@ -15,6 +15,14 @@ struct ShareView: View {
 
             TextField("Context", text: $model.note, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
+
+            if let detectedURL = YouTubeURLDetector.firstURL(in: model.note) {
+                CaptureYouTubeTopicBanner(
+                    detectedURL: detectedURL,
+                    hint: $model.hint
+                )
+            }
+
             TextField("Hint", text: $model.hint)
                 .textFieldStyle(.roundedBorder)
 
