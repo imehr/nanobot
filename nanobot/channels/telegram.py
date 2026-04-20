@@ -23,12 +23,22 @@ _YOUTUBE_URL_RE = re.compile(
 )
 
 
-def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> dict[str, Any] | None:
+def _maybe_forward_video_url_from_telegram(
+    text: str,
+    sender_id: str | None,
+    *,
+    chat_id: int | str | None = None,
+    message_id: int | None = None,
+) -> dict[str, Any] | None:
     """If message text contains a YouTube URL and NANOBOT_VIDEO_FORWARD_URL is
     set, POST the URL to the configured research-harness video queue. Returns
     a dict with the URL and any metadata the downstream enriched with (title,
     duration, uploader, thumbnail). Returns None if nothing was forwarded.
-    Swallows all exceptions."""
+    Swallows all exceptions.
+
+    chat_id + message_id are persisted with the queue entry so the
+    video-intake pipeline can reply to the original message on completion.
+    """
     target = os.environ.get("NANOBOT_VIDEO_FORWARD_URL")
     if not target:
         return None
@@ -43,6 +53,8 @@ def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> 
                 "topicHint": None,
                 "note": f"via telegram: {sender_id or ''}".strip(),
                 "source": "nanobot-telegram",
+                "telegramChatId": chat_id,
+                "telegramMessageId": message_id,
             }
         ).encode("utf-8")
         req = urllib.request.Request(target, data=payload, method="POST")
@@ -1014,7 +1026,12 @@ class TelegramChannel(BaseChannel):
         # it to the smaug research harness queue. Downstream /video/queue enriches
         # with yt-dlp metadata; we surface title + duration + uploader in the ack
         # reply so the sender sees the right video was captured.
-        forwarded_meta = _maybe_forward_video_url_from_telegram(content, sender_id)
+        forwarded_meta = _maybe_forward_video_url_from_telegram(
+            content,
+            sender_id,
+            chat_id=chat_id,
+            message_id=message.message_id,
+        )
         if forwarded_meta:
             logger.info(
                 "Forwarded YouTube URL to video queue: {} (title: {})",
