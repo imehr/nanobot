@@ -23,10 +23,12 @@ _YOUTUBE_URL_RE = re.compile(
 )
 
 
-def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> str | None:
+def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> dict[str, Any] | None:
     """If message text contains a YouTube URL and NANOBOT_VIDEO_FORWARD_URL is
     set, POST the URL to the configured research-harness video queue. Returns
-    the URL it forwarded, or None. Swallows all exceptions."""
+    a dict with the URL and any metadata the downstream enriched with (title,
+    duration, uploader, thumbnail). Returns None if nothing was forwarded.
+    Swallows all exceptions."""
     target = os.environ.get("NANOBOT_VIDEO_FORWARD_URL")
     if not target:
         return None
@@ -48,13 +50,58 @@ def _maybe_forward_video_url_from_telegram(text: str, sender_id: str | None) -> 
         tok = os.environ.get("NANOBOT_VIDEO_FORWARD_TOKEN")
         if tok:
             req.add_header("Authorization", f"Bearer {tok}")
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        # Allow extra wall-clock for downstream yt-dlp metadata fetch.
+        with urllib.request.urlopen(req, timeout=10) as resp:
             if resp.status >= 300:
                 logger.warning("video forward returned HTTP {}", resp.status)
-        return url
+                return {"url": url}
+            body = resp.read().decode("utf-8", errors="replace")
+            try:
+                data = json.loads(body)
+                q = data.get("queued") or {}
+                return {
+                    "url": q.get("url") or url,
+                    "title": q.get("title") or "",
+                    "duration": int(q.get("duration") or 0),
+                    "uploader": q.get("uploader") or "",
+                    "uploadDate": q.get("uploadDate") or "",
+                    "metadataFetched": bool(data.get("metadataFetched")),
+                }
+            except (json.JSONDecodeError, ValueError, KeyError):
+                return {"url": url}
     except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
         logger.warning("video forward failed: {!r}", exc)
         return None
+
+
+def _format_video_ack_reply(result: dict[str, Any]) -> str:
+    url = result.get("url", "")
+    title = (result.get("title") or "").strip()
+    duration = int(result.get("duration") or 0)
+    uploader = (result.get("uploader") or "").strip()
+    if not title:
+        return (
+            f"🎬 Queued for video research: {url}\n"
+            "Frames + transcript will be analyzed on the next hourly run."
+        )
+    mm = duration // 60
+    ss = duration % 60
+    dur = f"{mm}m {ss:02d}s" if duration > 0 else "—"
+    # Escape markdown-sensitive chars in title so reply_text(parse_mode=Markdown) is safe.
+    safe_title = re.sub(r"([*_`\[\]])", r"\\\1", title[:180])
+    bits = [f"🎬 *Queued for video research*", "", f"*{safe_title}*"]
+    meta_line_parts = []
+    if uploader:
+        meta_line_parts.append(uploader)
+    if duration > 0:
+        meta_line_parts.append(dur)
+    if meta_line_parts:
+        bits.append(" · ".join(meta_line_parts))
+    bits.append("")
+    bits.append(
+        "Frames + transcript run next hour; takeaways land on matching topic pages at 03:30 UTC."
+    )
+    return "\n".join(bits)
 from pydantic import Field
 from telegram import BotCommand, ReactionTypeEmoji, ReplyParameters, Update
 from telegram.error import BadRequest, NetworkError, TimedOut
@@ -964,15 +1011,21 @@ class TelegramChannel(BaseChannel):
         content = "\n".join(content_parts) if content_parts else "[empty message]"
 
         # Video research shortcut: if the message contains a YouTube URL, forward
-        # it to the smaug research harness queue. This is fire-and-forget —
-        # the message still flows through to the agent for a response.
-        forwarded_url = _maybe_forward_video_url_from_telegram(content, sender_id)
-        if forwarded_url:
-            logger.info("Forwarded YouTube URL to video queue: {}", forwarded_url)
+        # it to the smaug research harness queue. Downstream /video/queue enriches
+        # with yt-dlp metadata; we surface title + duration + uploader in the ack
+        # reply so the sender sees the right video was captured.
+        forwarded_meta = _maybe_forward_video_url_from_telegram(content, sender_id)
+        if forwarded_meta:
+            logger.info(
+                "Forwarded YouTube URL to video queue: {} (title: {})",
+                forwarded_meta.get("url"),
+                forwarded_meta.get("title") or "(no metadata)",
+            )
             try:
                 await message.reply_text(
-                    f"🎬 Queued for video research: {forwarded_url}\n"
-                    "Frames + transcript will be analyzed on the next hourly run."
+                    _format_video_ack_reply(forwarded_meta),
+                    parse_mode="Markdown",
+                    disable_web_page_preview=False,
                 )
             except Exception as exc:  # noqa: BLE001 — reply is optional
                 logger.debug("Telegram reply failed: {!r}", exc)
